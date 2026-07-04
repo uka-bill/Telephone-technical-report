@@ -104,6 +104,7 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 12px;
+        table-layout: fixed;
     }
     .reports-table th {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -117,6 +118,7 @@
         top: 0;
         z-index: 10;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        white-space: nowrap;
     }
     .reports-table td {
         padding: 8px 12px;
@@ -128,20 +130,16 @@
     .reports-table tr:hover td {
         background: linear-gradient(135deg, #f8f5fc 0%, #f3e5f5 100%);
     }
-    .group-header-row {
-        background: linear-gradient(135deg, #e8f0fe 0%, #d4e0f0 100%);
-        font-weight: bold;
-    }
-    .group-header-row td {
-        background: linear-gradient(135deg, #e8f0fe 0%, #d4e0f0 100%);
-        border-bottom: 2px solid var(--primary-color);
-        padding: 8px 12px;
-        font-weight: 600;
-        color: var(--primary-dark);
-    }
-    .group-header-row:hover td {
-        background: linear-gradient(135deg, #e8f0fe 0%, #d4e0f0 100%);
-    }
+    .col-id { width: 50px; min-width: 45px; max-width: 55px; }
+    .col-entity { width: auto; min-width: 100px; }
+    .col-ref-number { width: 100px; min-width: 80px; max-width: 120px; }
+    .col-ref-date { width: 80px; min-width: 70px; max-width: 100px; }
+    .col-problem { width: auto; min-width: 100px; }
+    .col-priority { width: 65px; min-width: 60px; max-width: 80px; }
+    .col-status { width: 85px; min-width: 75px; max-width: 110px; }
+    .col-date { width: 75px; min-width: 70px; max-width: 90px; }
+    .col-actions { width: 100px; min-width: 90px; max-width: 120px; }
+    
     .priority-high {
         color: #dc3545;
         font-weight: 600;
@@ -224,26 +222,52 @@
         color: #6c757d;
         font-size: 13px;
     }
-    .btn-edit, .btn-delete {
-        background: none;
+    
+    /* Action Buttons - Aligned in a Straight Line */
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+    .btn-action {
+        padding: 4px 6px;
+        font-size: 10px;
+        border-radius: 6px;
         border: none;
-        cursor: pointer;
-        padding: 5px 10px;
-        border-radius: 8px;
-        font-size: 11px;
         transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+        flex-shrink: 0;
     }
-    .btn-edit {
-        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-        color: #333;
-        margin-right: 5px;
-    }
-    .btn-delete {
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
-    }
-    .btn-edit:hover, .btn-delete:hover {
+    .btn-action:hover {
         transform: translateY(-1px);
+    }
+    .btn-edit-action {
+        background: #fff3e0;
+        color: #e65100;
+    }
+    .btn-edit-action:hover {
+        background: #ffe0b2;
+    }
+    .btn-delete-action {
+        background: #fce4ec;
+        color: #c62828;
+    }
+    .btn-delete-action:hover {
+        background: #f8bbd0;
+    }
+    .btn-view-action {
+        background: #e3f2fd;
+        color: #0d47a1;
+    }
+    .btn-view-action:hover {
+        background: #bbdefb;
     }
     
     /* Date Filter Bar */
@@ -457,6 +481,20 @@
     .btn-print:hover {
         transform: translateY(-1px);
     }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .col-id { width: 35px; min-width: 35px; }
+        .col-ref-number { width: 70px; min-width: 60px; }
+        .col-ref-date { width: 60px; min-width: 50px; }
+        .col-priority { width: 50px; min-width: 45px; }
+        .col-status { width: 65px; min-width: 55px; }
+        .col-date { width: 60px; min-width: 55px; }
+        .col-actions { width: 80px; min-width: 70px; }
+        .btn-action { width: 22px; height: 22px; font-size: 9px; }
+        .reports-table th, .reports-table td { padding: 6px 8px; font-size: 10px; }
+        .status-pending, .status-acknowledged { font-size: 8px; padding: 2px 6px; }
+    }
 </style>
 
 <div class="page-header">
@@ -614,8 +652,8 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn-print" onclick="printReport()"><i class="bi bi-printer"></i> Print</button>
-                <button type="button" class="btn-edit" onclick="editReport()" id="editBtn">Edit</button>
-                <button type="button" class="btn-delete" onclick="deleteReport()" id="deleteBtn">Delete</button>
+                <button type="button" class="btn-edit" onclick="editReport()" id="editBtn" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: #333; border: none; padding: 6px 14px; border-radius: 8px;">Edit</button>
+                <button type="button" class="btn-delete" onclick="deleteReport()" id="deleteBtn" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none; padding: 6px 14px; border-radius: 8px;">Delete</button>
             </div>
         </div>
     </div>
@@ -861,25 +899,6 @@
         const buildTable = (reportList, typeName, typeIcon) => {
             if (reportList.length === 0) return '';
             
-            const groupByTechnician = (list) => {
-                const groups = {};
-                list.forEach(report => {
-                    const techId = report.technician_id;
-                    const techName = report.technician_name || 'Unknown';
-                    if (!groups[techId]) {
-                        groups[techId] = {
-                            id: techId,
-                            name: techName,
-                            reports: []
-                        };
-                    }
-                    groups[techId].reports.push(report);
-                });
-                return Object.values(groups);
-            };
-            
-            const groups = groupByTechnician(reportList);
-            
             let tableHtml = `<div class="category-container">
                 <div class="section-header" onclick="toggleSection('${typeName}-body', this)">
                     <div class="section-title">
@@ -895,52 +914,46 @@
                     <table class="reports-table">
                         <thead>
                             <tr>
-                                <th style="width: 50px;">ID</th>
-                                <th style="min-width: 120px;">Entity Name</th>
-                                <th style="min-width: 100px;">Reference Number</th>
-                                <th style="min-width: 80px;">Reference Date</th>
-                                <th style="min-width: 130px;">Problem Type</th>
-                                <th style="width: 65px;">Priority</th>
-                                <th style="width: 85px;">Status</th>
-                                <th style="width: 75px;">Date</th>
-                                <th style="width: 100px;">Actions</th>
+                                <th class="col-id">ID</th>
+                                <th class="col-entity">Entity Name</th>
+                                <th class="col-ref-number">Reference #</th>
+                                <th class="col-ref-date">Ref Date</th>
+                                <th class="col-problem">Problem Type</th>
+                                <th class="col-priority">Priority</th>
+                                <th class="col-status">Status</th>
+                                <th class="col-date">Date</th>
+                                <th class="col-actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody>`;
             
-            groups.forEach(group => {
-                tableHtml += `<tr class="group-header-row">
-                                <td colspan="9">
-                                    <i class="bi bi-person-circle"></i> <strong>${escapeHtml(group.name)}</strong> 
-                                    <span style="font-size: 10px; font-weight: normal; margin-left: 8px;">(${group.reports.length} report${group.reports.length !== 1 ? 's' : ''})</span>
-                                </td>
-                            </tr>`;
+            reportList.forEach(report => {
+                const priorityClass = `priority-${report.priority}`;
+                const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
+                const isAcknowledged = report.team_leader_acknowledged;
+                const statusHtml = isAcknowledged ? '<span class="status-acknowledged">✓ Acknowledged</span>' : '<span class="status-pending">⏳ Pending</span>';
+                const isChecked = report.checked_by_assistant === true;
+                const canEdit = !isAcknowledged;
                 
-                group.reports.forEach(report => {
-                    const priorityClass = `priority-${report.priority}`;
-                    const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
-                    const isAcknowledged = report.team_leader_acknowledged;
-                    const statusHtml = isAcknowledged ? '<span class="status-acknowledged">✓ Acknowledged</span>' : '<span class="status-pending">⏳ Pending</span>';
-                    const isChecked = report.checked_by_assistant === true;
-                    const canEdit = !isAcknowledged;
-                    
-                    tableHtml += `
-                        <tr onclick="openReportDetail(${report.id})">
-                            <td><span class="report-id-link">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
-                            <td class="entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}">${escapeHtml(report.entity_name || report.entity_type)}</td>
-                            <td class="reference-number-cell" title="${escapeHtml(report.reference_number || '-')}">${escapeHtml(report.reference_number || '-')}</td>
-                            <td class="reference-date-cell" title="${escapeHtml(report.reference_date || '-')}">${escapeHtml(report.reference_date || '-')}</td>
-                            <td class="problem-type" title="${escapeHtml(report.problem_type || '-')}">${escapeHtml(report.problem_type || '-')}</td>
-                            <td class="${priorityClass}"><span class="priority-icon">${priorityIcon}</span> ${report.priority.toUpperCase()}</td>
-                            <td>${statusHtml}</td>
-                            <td class="date-cell">${formatDateOnly(report.created_at)}</td>
-                            <td>
-                                ${canEdit ? `<button class="btn-edit" onclick="event.stopPropagation(); editReportDirect(${report.id})"><i class="bi bi-pencil"></i> Edit</button>` : ''}
-                                <button class="btn-delete" onclick="event.stopPropagation(); deleteReportDirect(${report.id})"><i class="bi bi-trash"></i> Delete</button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                tableHtml += `
+                    <tr onclick="openReportDetail(${report.id})">
+                        <td class="col-id"><span class="report-id-link">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
+                        <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}">${escapeHtml(report.entity_name || report.entity_type)}</td>
+                        <td class="col-ref-number reference-number-cell" title="${escapeHtml(report.reference_number || '-')}">${escapeHtml(report.reference_number || '-')}</td>
+                        <td class="col-ref-date reference-date-cell" title="${escapeHtml(report.reference_date || '-')}">${escapeHtml(report.reference_date || '-')}</td>
+                        <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}">${escapeHtml(report.problem_type || '-')}</td>
+                        <td class="col-priority ${priorityClass}"><span class="priority-icon">${priorityIcon}</span> ${report.priority.toUpperCase()}</td>
+                        <td class="col-status">${statusHtml}</td>
+                        <td class="col-date date-cell">${formatDateOnly(report.created_at)}</td>
+                        <td class="col-actions">
+                            <div class="action-buttons">
+                                <button class="btn-action btn-view-action" onclick="event.stopPropagation(); openReportDetail(${report.id})" title="View"><i class="bi bi-eye"></i></button>
+                                ${canEdit ? `<button class="btn-action btn-edit-action" onclick="event.stopPropagation(); window.location.href='/new-report?id=${report.id}'" title="Edit"><i class="bi bi-pencil"></i></button>` : ''}
+                                ${canEdit ? `<button class="btn-action btn-delete-action" onclick="event.stopPropagation(); deleteReportDirect(${report.id})" title="Delete"><i class="bi bi-trash"></i></button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
             });
             
             tableHtml += `</tbody>
@@ -1105,10 +1118,6 @@
         } catch (error) { 
             window.showToast('Error', 'error'); 
         }
-    }
-    
-    function editReportDirect(id) {
-        window.location.href = `/new-report?id=${id}`;
     }
     
     function editReport() { 
