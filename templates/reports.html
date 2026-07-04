@@ -80,13 +80,14 @@
         color: white;
     }
 
-    /* Table Styles */
+    /* ===== REVERTED TABLE STYLES - Simpler layout ===== */
     .table-container {
         background: white;
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         border: 1px solid #eef2f7;
+        padding: 5px 0;
     }
     .table-container .table {
         margin-bottom: 0;
@@ -96,22 +97,14 @@
         color: #2c3e50;
         font-weight: 600;
         font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
         padding: 12px 15px;
         border-bottom: 2px solid #e9ecef;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        white-space: nowrap;
     }
     .table-container .table tbody td {
         padding: 10px 15px;
         vertical-align: middle;
         font-size: 13px;
         border-bottom: 1px solid #eef2f7;
-        word-wrap: break-word;
-        max-width: 0;
     }
     .table-container .table tbody tr:hover {
         background: #f8f5fc;
@@ -119,16 +112,9 @@
     .table-container .table tbody tr:last-child td {
         border-bottom: none;
     }
-
-    /* Column Widths */
-    .col-id { width: 60px; min-width: 60px; max-width: 60px; }
-    .col-type { width: 100px; min-width: 100px; max-width: 120px; }
-    .col-location { width: 150px; min-width: 120px; max-width: 200px; }
-    .col-problem { width: 140px; min-width: 100px; max-width: 180px; }
-    .col-details { width: auto; min-width: 150px; }
-    .col-status { width: 110px; min-width: 100px; max-width: 130px; }
-    .col-date { width: 150px; min-width: 120px; max-width: 170px; }
-    .col-actions { width: 130px; min-width: 110px; max-width: 160px; }
+    .table-responsive {
+        overflow-x: auto;
+    }
 
     /* Status Badges */
     .status-badge {
@@ -137,8 +123,8 @@
         font-size: 11px;
         font-weight: 600;
         display: inline-block;
-        text-align: center;
         min-width: 75px;
+        text-align: center;
     }
     .status-pending { background: #fff3cd; color: #856404; }
     .status-in_progress { background: #d1ecf1; color: #0c5460; }
@@ -146,7 +132,7 @@
     .status-acknowledged { background: #cce5ff; color: #004085; }
 
     .priority-badge {
-        padding: 3px 10px;
+        padding: 2px 10px;
         border-radius: 20px;
         font-size: 10px;
         font-weight: 600;
@@ -172,6 +158,7 @@
         border-radius: 6px;
         margin: 0 2px;
         transition: all 0.2s;
+        border: none;
     }
     .btn-action:hover {
         transform: translateY(-1px);
@@ -179,7 +166,6 @@
     .btn-view {
         background: #e3f2fd;
         color: #0d47a1;
-        border: none;
     }
     .btn-view:hover {
         background: #bbdefb;
@@ -188,7 +174,6 @@
     .btn-edit {
         background: #fff3e0;
         color: #e65100;
-        border: none;
     }
     .btn-edit:hover {
         background: #ffe0b2;
@@ -197,39 +182,10 @@
     .btn-delete {
         background: #fce4ec;
         color: #c62828;
-        border: none;
     }
     .btn-delete:hover {
         background: #f8bbd0;
         color: #c62828;
-    }
-
-    /* Details text wrap */
-    .text-wrap-cell {
-        word-wrap: break-word;
-        word-break: break-word;
-        white-space: normal;
-        max-height: 60px;
-        overflow-y: auto;
-        display: block;
-    }
-    .text-wrap-cell::-webkit-scrollbar {
-        width: 3px;
-    }
-    .text-wrap-cell::-webkit-scrollbar-thumb {
-        background: #ccc;
-        border-radius: 3px;
-    }
-
-    .entity-name-link {
-        color: #9b59b6;
-        font-weight: 500;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .entity-name-link:hover {
-        text-decoration: underline;
-        color: #8e44ad;
     }
 
     /* Modal */
@@ -249,21 +205,48 @@
         margin-right: 10px;
     }
 
-    /* Responsive */
-    @media (max-width: 992px) {
-        .col-id { width: 45px; min-width: 45px; }
-        .col-type { width: 80px; min-width: 80px; }
-        .col-location { width: 120px; min-width: 100px; }
-        .col-problem { width: 100px; min-width: 80px; }
-        .col-date { width: 120px; min-width: 100px; }
-        .col-actions { width: 100px; min-width: 90px; }
-        .table-container .table thead th,
-        .table-container .table tbody td {
-            padding: 8px 10px;
-            font-size: 12px;
-        }
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(155, 89, 182, 0.2);
+        border-radius: 50%;
+        border-top-color: #9b59b6;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
+    .entity-name-link {
+        color: #9b59b6;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .entity-name-link:hover {
+        text-decoration: underline;
+        color: #8e44ad;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #95a5a6;
+    }
+    .empty-state i {
+        font-size: 40px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    .empty-state h5 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    /* Responsive */
     @media (max-width: 768px) {
         .filter-section .row > div {
             margin-bottom: 10px;
@@ -275,9 +258,19 @@
             width: 100%;
             text-align: center;
         }
-        .col-actions .btn-action {
+        .table-container .table thead th,
+        .table-container .table tbody td {
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+        .status-badge {
             font-size: 10px;
+            padding: 3px 8px;
+            min-width: 60px;
+        }
+        .btn-action {
             padding: 3px 7px;
+            font-size: 10px;
         }
     }
 
@@ -292,43 +285,13 @@
         }
         .status-badge {
             font-size: 9px;
-            padding: 2px 8px;
-            min-width: 60px;
+            padding: 2px 6px;
+            min-width: 50px;
         }
         .priority-badge {
-            font-size: 9px;
+            font-size: 8px;
             padding: 2px 6px;
         }
-    }
-
-    /* Scrollable table body */
-    .table-scroll {
-        max-height: 550px;
-        overflow-y: auto;
-    }
-    .table-scroll thead {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-    .table-scroll thead th {
-        background: #f8f9fa;
-    }
-
-    /* Empty state */
-    .empty-state {
-        text-align: center;
-        padding: 50px 20px;
-        color: #95a5a6;
-    }
-    .empty-state i {
-        font-size: 48px;
-        margin-bottom: 15px;
-        opacity: 0.5;
-    }
-    .empty-state h5 {
-        color: #2c3e50;
-        margin-bottom: 8px;
     }
 </style>
 
@@ -390,18 +353,18 @@
 
 <!-- Reports Table -->
 <div class="table-container">
-    <div class="table-scroll">
+    <div class="table-responsive">
         <table class="table table-striped table-hover" id="reportsTable">
             <thead>
                 <tr>
-                    <th class="col-id text-center">#</th>
-                    <th class="col-type">Type</th>
-                    <th class="col-location">Location</th>
-                    <th class="col-problem">Problem</th>
-                    <th class="col-details">Details</th>
-                    <th class="col-status text-center">Status</th>
-                    <th class="col-date">Created</th>
-                    <th class="col-actions text-center">Actions</th>
+                    <th style="width: 50px;">#</th>
+                    <th style="width: 110px;">Type</th>
+                    <th style="width: 160px;">Location</th>
+                    <th style="width: 130px;">Problem</th>
+                    <th>Details</th>
+                    <th style="width: 110px;">Status</th>
+                    <th style="width: 150px;">Created</th>
+                    <th style="width: 120px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="reportsTableBody">
@@ -448,12 +411,12 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Report Type</label>
-                            <select class="form-control" id="editReportType" disabled>
+                            <select class="form-control" id="editReportType">
                                 <option value="water">💧 Water</option>
                                 <option value="electricity">⚡ Electricity</option>
                                 <option value="telephone">📞 Telephone</option>
                             </select>
-                            <small class="text-muted">Type cannot be changed</small>
+                            <small class="text-muted">Changing this will update the report category</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Status</label>
@@ -468,11 +431,11 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Entity Type</label>
-                            <select class="form-control" id="editEntityType" disabled>
+                            <select class="form-control" id="editEntityType">
                                 <option value="school">🏫 School</option>
                                 <option value="department">🏢 Department</option>
                             </select>
-                            <small class="text-muted">Entity type cannot be changed</small>
+                            <small class="text-muted">Changing this will update the entity category</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Priority</label>
@@ -623,7 +586,7 @@
             'resolved': 'status-resolved',
             'acknowledged': 'status-acknowledged'
         };
-        return `<span class="status-badge ${statusMap[status] || 'status-pending'}">${status || 'Unknown'}</span>`;
+        return `<span class="status-badge ${statusMap[status] || 'status-pending'}">${status || 'Pending'}</span>`;
     }
 
     function getPriorityBadge(priority) {
@@ -675,7 +638,6 @@
         tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="loading-spinner"></div> Loading reports...</td></tr>';
 
         try {
-            // Build query params
             const params = new URLSearchParams();
             const type = document.getElementById('filterType').value;
             const status = document.getElementById('filterStatus').value;
@@ -690,7 +652,6 @@
             const response = await fetch(url);
             allReports = await response.json();
 
-            // Apply search filter (client-side for better UX)
             let filteredReports = allReports;
             if (search) {
                 const searchLower = search.toLowerCase();
@@ -711,7 +672,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="8" class="text-center py-4 text-danger">
-                        <i class="bi bi-exclamation-circle"></i> Error loading reports: ${error.message}
+                        <i class="bi bi-exclamation-circle"></i> Error loading reports
                         <br><button class="btn-primary-custom btn-sm mt-2" onclick="loadReports()">Retry</button>
                     </td>
                 </tr>
@@ -739,7 +700,7 @@
             return;
         }
 
-        tbody.innerHTML = reports.map((report, index) => {
+        tbody.innerHTML = reports.map((report) => {
             const statusBadge = getStatusBadge(report.status);
             const priorityBadge = getPriorityBadge(report.priority);
             const typeIcon = getTypeIcon(report.report_type);
@@ -747,7 +708,6 @@
             const locationName = report.entity_name || report.entity_type || 'Unknown';
             const techName = report.technician_id ? getTechnicianName(report.technician_id) : 'Unassigned';
             
-            // Check if user can edit (the technician who created it or team leader)
             const currentUser = window.getCurrentUser();
             const canEdit = currentUser && (
                 currentUser.isAuthorized === true || 
@@ -757,29 +717,27 @@
 
             return `
                 <tr>
-                    <td class="col-id text-center"><strong>#${report.id}</strong></td>
-                    <td class="col-type"><span class="type-icon">${typeIcon}</span></td>
-                    <td class="col-location">
+                    <td><strong>#${report.id}</strong></td>
+                    <td><span class="type-icon">${typeIcon}</span></td>
+                    <td>
                         <span title="${escapeHtml(locationName)}">${truncateText(locationName, 25)}</span>
                         <br><small class="text-muted">${entityBadge}</small>
                     </td>
-                    <td class="col-problem">
+                    <td>
                         <span title="${escapeHtml(report.problem_type || '')}">${truncateText(report.problem_type || '-', 20)}</span>
                         <br><small class="text-muted">${priorityBadge}</small>
                     </td>
-                    <td class="col-details">
-                        <span class="text-wrap-cell" title="${escapeHtml(report.complaint_details || '')}">
-                            ${truncateText(report.complaint_details || '-', 60)}
+                    <td>
+                        <span title="${escapeHtml(report.complaint_details || '')}">
+                            ${truncateText(report.complaint_details || '-', 50)}
                         </span>
                     </td>
-                    <td class="col-status text-center">
+                    <td>
                         ${statusBadge}
                         <br><small class="text-muted">${techName}</small>
                     </td>
-                    <td class="col-date">
-                        ${formatDateTime(report.created_at)}
-                    </td>
-                    <td class="col-actions text-center">
+                    <td>${formatDateTime(report.created_at)}</td>
+                    <td>
                         <button class="btn-action btn-view" onclick="viewReport(${report.id})" title="View">
                             <i class="bi bi-eye"></i>
                         </button>
@@ -932,7 +890,6 @@
             return;
         }
 
-        // Check if user can edit
         const currentUser = window.getCurrentUser();
         const canEdit = currentUser && (
             currentUser.isAuthorized === true || 
@@ -945,7 +902,7 @@
             return;
         }
 
-        // Populate the form
+        // Populate the form - all fields are now editable
         document.getElementById('editReportId').value = report.id;
         document.getElementById('editReportType').value = report.report_type || 'water';
         document.getElementById('editReportStatus').value = report.status || 'pending';
@@ -977,15 +934,16 @@
             return;
         }
 
-        // Get current user
         const currentUser = window.getCurrentUser();
         if (!currentUser || !currentUser.id) {
             if (window.showToast) window.showToast('Please login first', 'error');
             return;
         }
 
-        // Collect all data from form
+        // Collect ALL data from form
         const updateData = {
+            report_type: document.getElementById('editReportType').value,
+            entity_type: document.getElementById('editEntityType').value,
             status: document.getElementById('editReportStatus').value,
             priority: document.getElementById('editPriority').value,
             problem_type: document.getElementById('editProblemType').value.trim(),
@@ -1000,14 +958,11 @@
             reference_number: document.getElementById('editReferenceNumber').value.trim(),
             reference_date: document.getElementById('editReferenceDate').value || null,
             priority_with_tender: document.getElementById('editPriorityWithTender').checked,
-            // Keep these fields unchanged
             technician_id: parseInt(currentUser.id)
         };
 
-        // Log what we're sending for debugging
         console.log('Sending update data:', updateData);
 
-        // Show loading state
         const saveBtn = document.getElementById('saveEditBtn');
         const originalText = saveBtn.innerHTML;
         saveBtn.innerHTML = '<span class="loading-spinner"></span> Saving...';
@@ -1024,11 +979,7 @@
 
             if (result.success) {
                 if (window.showToast) window.showToast('✅ Report updated successfully', 'success');
-                
-                // Close modal
                 bootstrap.Modal.getInstance(document.getElementById('editReportModal')).hide();
-                
-                // Reload reports
                 await loadReports();
             } else {
                 if (window.showToast) {
@@ -1045,7 +996,6 @@
                 alert('Error updating report: ' + error.message);
             }
         } finally {
-            // Restore button
             saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;
         }
@@ -1094,7 +1044,6 @@
     async function exportReports() {
         const type = document.getElementById('filterType').value;
         const url = type ? `/api/export-reports?type=${type}` : '/api/export-reports';
-        
         try {
             if (window.showToast) window.showToast('Preparing export...', 'info');
             window.location.href = url;
@@ -1107,14 +1056,12 @@
     // ============ KEYBOARD SHORTCUTS ============
 
     document.addEventListener('keydown', function(e) {
-        // Escape to close modals
         if (e.key === 'Escape') {
             const openModals = document.querySelectorAll('.modal.show');
             if (openModals.length) {
                 bootstrap.Modal.getInstance(openModals[0]).hide();
             }
         }
-        // Ctrl+R to refresh
         if (e.ctrlKey && e.key === 'r') {
             e.preventDefault();
             loadReports();
@@ -1127,8 +1074,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadTechnicians();
         loadReports();
-        
-        // Auto-refresh every 60 seconds
         setInterval(loadReports, 60000);
     });
 </script>
