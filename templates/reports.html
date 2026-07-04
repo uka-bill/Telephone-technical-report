@@ -80,31 +80,38 @@
         color: white;
     }
 
-    /* ===== REVERTED TABLE STYLES - Simpler layout ===== */
+    /* Table Styles - Clean and Well-Distributed */
     .table-container {
         background: white;
         border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         border: 1px solid #eef2f7;
-        padding: 5px 0;
     }
     .table-container .table {
         margin-bottom: 0;
+        width: 100%;
+        table-layout: fixed;
     }
     .table-container .table thead th {
         background: #f8f9fa;
         color: #2c3e50;
         font-weight: 600;
         font-size: 12px;
-        padding: 12px 15px;
+        padding: 12px 10px;
         border-bottom: 2px solid #e9ecef;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .table-container .table tbody td {
-        padding: 10px 15px;
+        padding: 10px 10px;
         vertical-align: middle;
         font-size: 13px;
         border-bottom: 1px solid #eef2f7;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     .table-container .table tbody tr:hover {
         background: #f8f5fc;
@@ -116,15 +123,27 @@
         overflow-x: auto;
     }
 
+    /* Column Widths - Evenly Distributed */
+    .col-id { width: 50px; min-width: 50px; max-width: 50px; }
+    .col-type { width: 100px; min-width: 90px; max-width: 110px; }
+    .col-location { width: 140px; min-width: 120px; max-width: 160px; }
+    .col-problem { width: 120px; min-width: 100px; max-width: 140px; }
+    .col-details { width: auto; min-width: 120px; }
+    .col-submitted { width: 120px; min-width: 100px; max-width: 140px; }
+    .col-status { width: 110px; min-width: 100px; max-width: 130px; }
+    .col-date { width: 130px; min-width: 110px; max-width: 150px; }
+    .col-actions { width: 100px; min-width: 90px; max-width: 110px; }
+
     /* Status Badges */
     .status-badge {
-        padding: 4px 12px;
+        padding: 4px 10px;
         border-radius: 20px;
         font-size: 11px;
         font-weight: 600;
         display: inline-block;
-        min-width: 75px;
+        min-width: 70px;
         text-align: center;
+        white-space: nowrap;
     }
     .status-pending { background: #fff3cd; color: #856404; }
     .status-in_progress { background: #d1ecf1; color: #0c5460; }
@@ -132,11 +151,12 @@
     .status-acknowledged { background: #cce5ff; color: #004085; }
 
     .priority-badge {
-        padding: 2px 10px;
+        padding: 2px 8px;
         border-radius: 20px;
         font-size: 10px;
         font-weight: 600;
         display: inline-block;
+        white-space: nowrap;
     }
     .priority-high { background: #f8d7da; color: #721c24; }
     .priority-medium { background: #fff3cd; color: #856404; }
@@ -145,20 +165,34 @@
     .type-icon {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
+        white-space: nowrap;
     }
     .type-icon.water { color: #17a2b8; }
     .type-icon.electricity { color: #f57c00; }
     .type-icon.telephone { color: #4caf50; }
 
-    /* Action Buttons */
+    /* Action Buttons - Aligned in a Straight Line */
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
     .btn-action {
-        padding: 4px 10px;
+        padding: 4px 8px;
         font-size: 11px;
         border-radius: 6px;
-        margin: 0 2px;
-        transition: all 0.2s;
         border: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        flex-shrink: 0;
     }
     .btn-action:hover {
         transform: translateY(-1px);
@@ -186,6 +220,42 @@
     .btn-delete:hover {
         background: #f8bbd0;
         color: #c62828;
+    }
+
+    /* Badges for entity type */
+    .entity-badge {
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 500;
+        display: inline-block;
+        white-space: nowrap;
+    }
+    .entity-badge.school { background: #e3f2fd; color: #0d47a1; }
+    .entity-badge.department { background: #f3e5f5; color: #6a1b9a; }
+
+    /* Text truncation */
+    .text-truncate-custom {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    .text-wrap-cell {
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: normal;
+        max-height: 50px;
+        overflow-y: auto;
+        display: block;
+    }
+    .text-wrap-cell::-webkit-scrollbar {
+        width: 3px;
+    }
+    .text-wrap-cell::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 3px;
     }
 
     /* Modal */
@@ -219,18 +289,6 @@
         to { transform: rotate(360deg); }
     }
 
-    .entity-name-link {
-        color: #9b59b6;
-        font-weight: 500;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .entity-name-link:hover {
-        text-decoration: underline;
-        color: #8e44ad;
-    }
-
-    /* Empty state */
     .empty-state {
         text-align: center;
         padding: 40px 20px;
@@ -247,6 +305,33 @@
     }
 
     /* Responsive */
+    @media (max-width: 992px) {
+        .col-id { width: 40px; min-width: 40px; max-width: 40px; }
+        .col-type { width: 80px; min-width: 70px; max-width: 90px; }
+        .col-location { width: 110px; min-width: 90px; max-width: 130px; }
+        .col-problem { width: 100px; min-width: 80px; max-width: 120px; }
+        .col-submitted { width: 100px; min-width: 80px; max-width: 120px; }
+        .col-status { width: 90px; min-width: 80px; max-width: 100px; }
+        .col-date { width: 110px; min-width: 90px; max-width: 130px; }
+        .col-actions { width: 80px; min-width: 70px; max-width: 90px; }
+        .table-container .table thead th,
+        .table-container .table tbody td {
+            padding: 8px 8px;
+            font-size: 12px;
+        }
+        .status-badge {
+            font-size: 10px;
+            padding: 3px 6px;
+            min-width: 55px;
+        }
+        .btn-action {
+            width: 24px;
+            height: 24px;
+            font-size: 10px;
+            padding: 3px 6px;
+        }
+    }
+
     @media (max-width: 768px) {
         .filter-section .row > div {
             margin-bottom: 10px;
@@ -258,40 +343,63 @@
             width: 100%;
             text-align: center;
         }
-        .table-container .table thead th,
+        .table-container .table thead th {
+            font-size: 10px;
+            padding: 6px 6px;
+        }
         .table-container .table tbody td {
-            padding: 8px 10px;
-            font-size: 12px;
+            font-size: 11px;
+            padding: 6px 6px;
         }
         .status-badge {
-            font-size: 10px;
-            padding: 3px 8px;
-            min-width: 60px;
+            font-size: 9px;
+            padding: 2px 5px;
+            min-width: 45px;
+        }
+        .priority-badge {
+            font-size: 8px;
+            padding: 1px 5px;
         }
         .btn-action {
-            padding: 3px 7px;
-            font-size: 10px;
+            width: 22px;
+            height: 22px;
+            font-size: 9px;
+            padding: 2px 5px;
         }
+        .col-actions { width: 70px; min-width: 60px; max-width: 80px; }
+        .col-status { width: 75px; min-width: 65px; max-width: 85px; }
+        .col-submitted { width: 80px; min-width: 65px; max-width: 95px; }
+        .col-date { width: 90px; min-width: 75px; max-width: 110px; }
+        .entity-badge { font-size: 8px; padding: 1px 5px; }
     }
 
     @media (max-width: 576px) {
         .table-container .table thead th {
-            font-size: 10px;
-            padding: 6px 8px;
+            font-size: 9px;
+            padding: 4px 4px;
         }
         .table-container .table tbody td {
-            font-size: 11px;
-            padding: 6px 8px;
+            font-size: 10px;
+            padding: 4px 4px;
         }
         .status-badge {
-            font-size: 9px;
-            padding: 2px 6px;
-            min-width: 50px;
-        }
-        .priority-badge {
             font-size: 8px;
-            padding: 2px 6px;
+            padding: 1px 4px;
+            min-width: 35px;
         }
+        .btn-action {
+            width: 20px;
+            height: 20px;
+            font-size: 8px;
+            padding: 2px 4px;
+        }
+        .col-actions { width: 60px; min-width: 50px; max-width: 70px; }
+        .col-status { width: 60px; min-width: 50px; max-width: 70px; }
+        .col-type { width: 60px; min-width: 50px; max-width: 70px; }
+        .col-location { width: 80px; min-width: 60px; max-width: 100px; }
+        .col-problem { width: 70px; min-width: 50px; max-width: 90px; }
+        .col-submitted { width: 65px; min-width: 50px; max-width: 80px; }
+        .col-date { width: 75px; min-width: 60px; max-width: 90px; }
     }
 </style>
 
@@ -357,19 +465,20 @@
         <table class="table table-striped table-hover" id="reportsTable">
             <thead>
                 <tr>
-                    <th style="width: 50px;">#</th>
-                    <th style="width: 110px;">Type</th>
-                    <th style="width: 160px;">Location</th>
-                    <th style="width: 130px;">Problem</th>
-                    <th>Details</th>
-                    <th style="width: 110px;">Status</th>
-                    <th style="width: 150px;">Created</th>
-                    <th style="width: 120px;">Actions</th>
+                    <th class="col-id text-center">#</th>
+                    <th class="col-type">Type</th>
+                    <th class="col-location">Location</th>
+                    <th class="col-problem">Problem</th>
+                    <th class="col-details">Details</th>
+                    <th class="col-submitted">Submitted By</th>
+                    <th class="col-status text-center">Status</th>
+                    <th class="col-date">Created</th>
+                    <th class="col-actions text-center">Actions</th>
                 </tr>
             </thead>
             <tbody id="reportsTableBody">
                 <tr>
-                    <td colspan="8" class="text-center py-4">
+                    <td colspan="9" class="text-center py-4">
                         <div class="loading-spinner"></div> Loading reports...
                     </td>
                 </tr>
@@ -608,8 +717,8 @@
     }
 
     function getEntityBadge(type) {
-        if (type === 'school') return '<span class="badge" style="background: #e3f2fd; color: #0d47a1; padding: 3px 10px; border-radius: 12px;">🏫 School</span>';
-        if (type === 'department') return '<span class="badge" style="background: #f3e5f5; color: #6a1b9a; padding: 3px 10px; border-radius: 12px;">🏢 Department</span>';
+        if (type === 'school') return '<span class="entity-badge school">🏫 School</span>';
+        if (type === 'department') return '<span class="entity-badge department">🏢 Department</span>';
         return type;
     }
 
@@ -635,7 +744,7 @@
 
     async function loadReports() {
         const tbody = document.getElementById('reportsTableBody');
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><div class="loading-spinner"></div> Loading reports...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="loading-spinner"></div> Loading reports...</td></tr>';
 
         try {
             const params = new URLSearchParams();
@@ -671,7 +780,7 @@
             console.error('Error loading reports:', error);
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center py-4 text-danger">
+                    <td colspan="9" class="text-center py-4 text-danger">
                         <i class="bi bi-exclamation-circle"></i> Error loading reports
                         <br><button class="btn-primary-custom btn-sm mt-2" onclick="loadReports()">Retry</button>
                     </td>
@@ -688,7 +797,7 @@
         if (!reports || reports.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="8">
+                    <td colspan="9">
                         <div class="empty-state">
                             <i class="bi bi-inbox"></i>
                             <h5>No reports found</h5>
@@ -717,36 +826,42 @@
 
             return `
                 <tr>
-                    <td><strong>#${report.id}</strong></td>
-                    <td><span class="type-icon">${typeIcon}</span></td>
-                    <td>
-                        <span title="${escapeHtml(locationName)}">${truncateText(locationName, 25)}</span>
-                        <br><small class="text-muted">${entityBadge}</small>
+                    <td class="col-id text-center"><strong>#${report.id}</strong></td>
+                    <td class="col-type"><span class="type-icon">${typeIcon}</span></td>
+                    <td class="col-location">
+                        <span class="text-truncate-custom" title="${escapeHtml(locationName)}">${truncateText(locationName, 20)}</span>
+                        <br><span class="entity-badge ${report.entity_type === 'school' ? 'school' : 'department'}">${report.entity_type === 'school' ? '🏫 School' : '🏢 Department'}</span>
                     </td>
-                    <td>
-                        <span title="${escapeHtml(report.problem_type || '')}">${truncateText(report.problem_type || '-', 20)}</span>
-                        <br><small class="text-muted">${priorityBadge}</small>
+                    <td class="col-problem">
+                        <span class="text-truncate-custom" title="${escapeHtml(report.problem_type || '')}">${truncateText(report.problem_type || '-', 15)}</span>
+                        <br><span class="priority-badge ${report.priority === 'high' ? 'priority-high' : report.priority === 'medium' ? 'priority-medium' : 'priority-low'}">${report.priority || 'Low'}</span>
                     </td>
-                    <td>
-                        <span title="${escapeHtml(report.complaint_details || '')}">
-                            ${truncateText(report.complaint_details || '-', 50)}
+                    <td class="col-details">
+                        <span class="text-wrap-cell" title="${escapeHtml(report.complaint_details || '')}">
+                            ${truncateText(report.complaint_details || '-', 40)}
                         </span>
                     </td>
-                    <td>
-                        ${statusBadge}
-                        <br><small class="text-muted">${techName}</small>
+                    <td class="col-submitted">
+                        <span class="text-truncate-custom" title="${escapeHtml(techName)}">${escapeHtml(techName)}</span>
                     </td>
-                    <td>${formatDateTime(report.created_at)}</td>
-                    <td>
-                        <button class="btn-action btn-view" onclick="viewReport(${report.id})" title="View">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        ${canEdit ? `<button class="btn-action btn-edit" onclick="editReport(${report.id})" title="Edit">
-                            <i class="bi bi-pencil"></i>
-                        </button>` : ''}
-                        ${canEdit ? `<button class="btn-action btn-delete" onclick="deleteReport(${report.id})" title="Delete">
-                            <i class="bi bi-trash"></i>
-                        </button>` : ''}
+                    <td class="col-status text-center">
+                        ${statusBadge}
+                    </td>
+                    <td class="col-date">
+                        <span class="text-truncate-custom">${formatDateTime(report.created_at)}</span>
+                    </td>
+                    <td class="col-actions text-center">
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" onclick="viewReport(${report.id})" title="View">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            ${canEdit ? `<button class="btn-action btn-edit" onclick="editReport(${report.id})" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>` : ''}
+                            ${canEdit ? `<button class="btn-action btn-delete" onclick="deleteReport(${report.id})" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>` : ''}
+                        </div>
                     </td>
                 </tr>
             `;
@@ -902,7 +1017,7 @@
             return;
         }
 
-        // Populate the form - all fields are now editable
+        // Populate the form
         document.getElementById('editReportId').value = report.id;
         document.getElementById('editReportType').value = report.report_type || 'water';
         document.getElementById('editReportStatus').value = report.status || 'pending';
@@ -940,7 +1055,6 @@
             return;
         }
 
-        // Collect ALL data from form
         const updateData = {
             report_type: document.getElementById('editReportType').value,
             entity_type: document.getElementById('editEntityType').value,
