@@ -68,10 +68,11 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 12px;
+        table-layout: fixed;
     }
     .reports-table th {
         background: #f8f9fa;
-        padding: 8px 8px;
+        padding: 10px 8px;
         text-align: left;
         font-weight: 600;
         font-size: 10px;
@@ -124,8 +125,8 @@
     }
     .status-pending {
         display: inline-block;
-        padding: 2px 6px;
-        border-radius: 12px;
+        padding: 3px 8px;
+        border-radius: 15px;
         font-size: 10px;
         font-weight: 500;
         background-color: #fff3cd;
@@ -133,8 +134,8 @@
     }
     .status-acknowledged {
         display: inline-block;
-        padding: 2px 6px;
-        border-radius: 12px;
+        padding: 3px 8px;
+        border-radius: 15px;
         font-size: 10px;
         font-weight: 500;
         background-color: #d4edda;
@@ -158,6 +159,17 @@
     .report-id-link:hover {
         text-decoration: underline;
     }
+    .col-id { width: 45px; min-width: 45px; max-width: 45px; }
+    .col-entity { width: auto; min-width: 100px; }
+    .col-ref-number { width: 100px; min-width: 80px; max-width: 120px; }
+    .col-ref-date { width: 80px; min-width: 70px; max-width: 100px; }
+    .col-problem { width: auto; min-width: 100px; }
+    .col-priority { width: 65px; min-width: 60px; max-width: 80px; }
+    .col-submitted { width: 100px; min-width: 80px; max-width: 130px; }
+    .col-status { width: 85px; min-width: 75px; max-width: 110px; }
+    .col-date { width: 75px; min-width: 70px; max-width: 90px; }
+    .col-actions { width: 90px; min-width: 80px; max-width: 110px; }
+    
     .entity-name, .reference-number-cell, .reference-date-cell {
         font-size: 11px;
         white-space: nowrap;
@@ -185,6 +197,46 @@
         padding: 30px;
         color: #999;
         font-size: 13px;
+    }
+    
+    /* Action Buttons - Aligned in a Straight Line */
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+    .btn-action {
+        padding: 4px 6px;
+        font-size: 10px;
+        border-radius: 6px;
+        border: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .btn-action:hover {
+        transform: translateY(-1px);
+    }
+    .btn-view {
+        background: #e3f2fd;
+        color: #0d47a1;
+    }
+    .btn-view:hover {
+        background: #bbdefb;
+    }
+    .btn-print {
+        background: #e8f5e9;
+        color: #1b5e20;
+    }
+    .btn-print:hover {
+        background: #c8e6c9;
     }
     
     /* Date Filter Bar */
@@ -356,6 +408,21 @@
         font-size: 10px;
         color: #999;
         margin-left: 10px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .col-id { width: 35px; min-width: 35px; }
+        .col-ref-number { width: 70px; min-width: 60px; }
+        .col-ref-date { width: 60px; min-width: 50px; }
+        .col-priority { width: 50px; min-width: 45px; }
+        .col-submitted { width: 70px; min-width: 60px; }
+        .col-status { width: 65px; min-width: 55px; }
+        .col-date { width: 60px; min-width: 55px; }
+        .col-actions { width: 70px; min-width: 60px; }
+        .btn-action { width: 22px; height: 22px; font-size: 9px; }
+        .reports-table th, .reports-table td { padding: 6px 5px; font-size: 10px; }
+        .status-pending, .status-acknowledged { font-size: 8px; padding: 2px 5px; }
     }
 </style>
 
@@ -781,75 +848,54 @@
             return;
         }
         
-        // Group reports by technician
-        const groupByTechnician = (reportsList) => {
-            const groups = {};
-            reportsList.forEach(report => {
-                const techId = report.technician_id;
-                const techName = report.technician_name || 'Unknown';
-                if (!groups[techId]) {
-                    groups[techId] = {
-                        id: techId,
-                        name: techName,
-                        reports: []
-                    };
-                }
-                groups[techId].reports.push(report);
-            });
-            return Object.values(groups);
-        };
-        
-        const groups = groupByTechnician(reports);
-        
         let tableHtml = `<div class="reports-table-wrapper">
             <table class="reports-table">
                 <thead>
                     <tr>
-                        <th style="width: 45px;">ID</th>
-                        <th style="min-width: 120px;">Entity Name</th>
-                        <th style="min-width: 100px;">Reference Number</th>
-                        <th style="min-width: 80px;">Reference Date</th>
-                        <th style="min-width: 130px;">Problem Type</th>
-                        <th style="width: 65px;">Priority</th>
-                        <th style="width: 85px;">Status</th>
-                        <th style="width: 75px;">Date</th>
+                        <th class="col-id">ID</th>
+                        <th class="col-entity">Entity Name</th>
+                        <th class="col-ref-number">Reference #</th>
+                        <th class="col-ref-date">Ref Date</th>
+                        <th class="col-problem">Problem Type</th>
+                        <th class="col-priority">Priority</th>
+                        <th class="col-submitted">Submitted By</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-date">Date</th>
+                        <th class="col-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody>`;
         
-        groups.forEach(group => {
-            tableHtml += `<tr class="group-header-row">
-                            <td colspan="8">
-                                <i class="bi bi-person-circle"></i> <strong>${escapeHtml(group.name)}</strong> 
-                                <span style="font-size: 10px; font-weight: normal; margin-left: 8px;">(${group.reports.length} report${group.reports.length !== 1 ? 's' : ''})</span>
-                              </td>
-                            </tr>`;
+        reports.forEach(report => {
+            const priorityClass = `priority-${report.priority}`;
+            const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
+            const isAcknowledged = report.team_leader_acknowledged;
+            const statusHtml = isAcknowledged ? '<span class="status-acknowledged">✓ Acknowledged</span>' : '<span class="status-pending">⏳ Pending</span>';
+            const isChecked = report.checked_by_assistant === true;
+            const techName = report.technician_name || 'Unknown';
             
-            group.reports.forEach(report => {
-                const priorityClass = `priority-${report.priority}`;
-                const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
-                const isAcknowledged = report.team_leader_acknowledged;
-                const statusHtml = isAcknowledged ? '<span class="status-acknowledged">✓ Acknowledged</span>' : '<span class="status-pending">⏳ Pending</span>';
-                const isChecked = report.checked_by_assistant === true;
-                
-                tableHtml += `
-                    <tr onclick="openReportDetail(${report.id})">
-                        <td><span class="report-id-link">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
-                        <td class="entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}">${escapeHtml(report.entity_name || report.entity_type)}</td>
-                        <td class="reference-number-cell" title="${escapeHtml(report.reference_number || '-')}">${escapeHtml(report.reference_number || '-')}</td>
-                        <td class="reference-date-cell" title="${escapeHtml(report.reference_date || '-')}">${escapeHtml(report.reference_date || '-')}</td>
-                        <td class="problem-type" title="${escapeHtml(report.problem_type || '-')}">${escapeHtml(report.problem_type || '-')}</td>
-                        <td class="${priorityClass}"><span class="priority-icon">${priorityIcon}</span> ${report.priority.toUpperCase()}</td>
-                        <td>${statusHtml}</td>
-                        <td class="date-cell">${formatDateOnly(report.created_at)}</td
-                    </tr>
-                `;
-            });
+            tableHtml += `
+                <tr onclick="openReportDetail(${report.id})">
+                    <td class="col-id"><span class="report-id-link">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
+                    <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}">${escapeHtml(report.entity_name || report.entity_type)}</td>
+                    <td class="col-ref-number reference-number-cell" title="${escapeHtml(report.reference_number || '-')}">${escapeHtml(report.reference_number || '-')}</td>
+                    <td class="col-ref-date reference-date-cell" title="${escapeHtml(report.reference_date || '-')}">${escapeHtml(report.reference_date || '-')}</td>
+                    <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}">${escapeHtml(report.problem_type || '-')}</td>
+                    <td class="col-priority ${priorityClass}"><span class="priority-icon">${priorityIcon}</span> ${report.priority.toUpperCase()}</td>
+                    <td class="col-submitted">${escapeHtml(techName)}</td>
+                    <td class="col-status">${statusHtml}</td>
+                    <td class="col-date date-cell">${formatDateOnly(report.created_at)}</td>
+                    <td class="col-actions">
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" onclick="event.stopPropagation(); openReportDetail(${report.id})" title="View"><i class="bi bi-eye"></i></button>
+                            <button class="btn-action btn-print" onclick="event.stopPropagation(); printReport(${report.id})" title="Print"><i class="bi bi-printer"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
         });
         
-        tableHtml += `</tbody>
-            </table>
-        </div>`;
+        tableHtml += `</tbody></table></div>`;
         container.innerHTML = tableHtml;
     }
     
@@ -1067,29 +1113,21 @@
         }
     }
     
-    function printReport() {
-        if (!currentReport && currentReportId) {
-            window.showToast('No report to print', 'error');
-            return;
-        }
+    function printReport(id) {
+        if (!id && currentReport) id = currentReport.id;
+        if (!id) { window.showToast('No report to print', 'error'); return; }
         
-        const report = currentReport;
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        const report = allReports.find(r => r.id === id);
+        if (!report) { window.showToast('Report not found', 'error'); return; }
         
-        fetch(`/api/technical-reports/${report.id}/track-print`, { method: 'POST' }).catch(e => console.log(e));
+        fetch(`/api/technical-reports/${id}/track-print`, { method: 'POST' }).catch(e => console.log(e));
         
-        const printHtml = getPrintHTML(report);
-        
-        const iframe = document.getElementById('printIframe');
-        const iframeDoc = iframe.contentWindow.document;
-        iframeDoc.open();
-        iframeDoc.write(printHtml);
-        iframeDoc.close();
-        
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
+        printWindow.document.write(generatePrintHTML(report));
+        printWindow.document.close();
     }
     
-    function getPrintHTML(report) {
+    function generatePrintHTML(report) {
         const reportTypeIcon = '📞';
         const reportTypeName = 'Telephone';
         const currentDate = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -1138,7 +1176,7 @@
         
         let assistantCheckHtml = '';
         if (report.checked_by_assistant) {
-            assistantCheckHtml = `<tr><th>Assistant Checked By</th><td>${escapeHtml(assistantName)} on ${formatDate(report.checked_by_assistant_at)}</td>`;
+            assistantCheckHtml = `<tr><th>Assistant Checked By</th><td>${escapeHtml(assistantName)} on ${formatDate(report.checked_by_assistant_at)}</td></tr>`;
         }
         
         return `<!DOCTYPE html>
