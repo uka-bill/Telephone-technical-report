@@ -1,5 +1,5 @@
 {% extends "base.html" %}
- 
+
 {% block content %}
 <style>
     .filter-card {
@@ -160,16 +160,15 @@
         text-decoration: underline;
     }
     .col-id { width: 45px; min-width: 45px; max-width: 45px; }
-    .col-entity { width: auto; min-width: 100px; }
-    .col-ref-number { width: 100px; min-width: 80px; max-width: 120px; }
-    .col-ref-date { width: 80px; min-width: 70px; max-width: 100px; }
-    .col-problem { width: auto; min-width: 100px; }
-    .col-priority { width: 65px; min-width: 60px; max-width: 80px; }
-    .col-submitted { width: 100px; min-width: 80px; max-width: 130px; }
+    .col-entity { width: auto; min-width: 120px; }
+    .col-ref-number { width: 80px; min-width: 70px; max-width: 100px; }
+    .col-ref-date { width: 70px; min-width: 60px; max-width: 85px; }
+    .col-problem { width: auto; min-width: 120px; }
+    .col-priority { width: 60px; min-width: 55px; max-width: 70px; }
+    .col-submitted { width: 120px; min-width: 100px; max-width: 150px; }
     .col-status { width: 85px; min-width: 75px; max-width: 110px; }
     .col-date { width: 75px; min-width: 70px; max-width: 90px; }
-    .col-actions { width: 90px; min-width: 80px; max-width: 110px; }
-    
+    .col-actions { width: 80px; min-width: 70px; max-width: 100px; }
     .entity-name, .reference-number-cell, .reference-date-cell {
         font-size: 11px;
         white-space: nowrap;
@@ -198,8 +197,8 @@
         color: #999;
         font-size: 13px;
     }
-    
-    /* Action Buttons - Aligned in a Straight Line */
+
+    /* Action buttons */
     .action-buttons {
         display: flex;
         align-items: center;
@@ -238,7 +237,7 @@
     .btn-print:hover {
         background: #c8e6c9;
     }
-    
+
     /* Date Filter Bar */
     .date-filter-bar {
         background: #f8f9fa;
@@ -292,7 +291,7 @@
     .btn-clear:hover, .btn-clear-filters:hover {
         background-color: #5a6268;
     }
-    
+
     /* Statistics Cards */
     .stat-card {
         background: white;
@@ -334,12 +333,12 @@
         font-size: 11px;
         font-weight: 500;
     }
-    
+
     .form-control-sm {
         font-size: 12px;
         padding: 6px 10px;
     }
-    
+
     .reports-table-wrapper::-webkit-scrollbar {
         width: 5px;
         height: 5px;
@@ -352,7 +351,7 @@
         background: #17a2b8;
         border-radius: 10px;
     }
-    
+
     /* Modal Styles */
     .modal-fullscreen {
         max-width: 95%;
@@ -409,14 +408,13 @@
         color: #999;
         margin-left: 10px;
     }
-    
-    /* Responsive */
+
     @media (max-width: 768px) {
         .col-id { width: 35px; min-width: 35px; }
-        .col-ref-number { width: 70px; min-width: 60px; }
-        .col-ref-date { width: 60px; min-width: 50px; }
-        .col-priority { width: 50px; min-width: 45px; }
-        .col-submitted { width: 70px; min-width: 60px; }
+        .col-ref-number { width: 60px; min-width: 50px; }
+        .col-ref-date { width: 50px; min-width: 45px; }
+        .col-priority { width: 45px; min-width: 40px; }
+        .col-submitted { width: 80px; min-width: 60px; }
         .col-status { width: 65px; min-width: 55px; }
         .col-date { width: 60px; min-width: 55px; }
         .col-actions { width: 70px; min-width: 60px; }
@@ -633,39 +631,59 @@
     let isModalExpanded = false;
     let currentFilterMonth = 'all';
     let currentFilterYear = 'all';
-    
+    let techniciansMap = {};
+
+    // ============ TECHNICIAN HELPER ============
+    async function loadTechnicians() {
+        try {
+            const response = await fetch('/api/technicians');
+            const techs = await response.json();
+            techs.forEach(tech => {
+                techniciansMap[tech.id] = tech.name;
+            });
+        } catch (error) {
+            console.error('Error loading technicians:', error);
+        }
+    }
+
+    function getTechnicianName(techId) {
+        if (!techId) return 'Unassigned';
+        return techniciansMap[techId] || `Technician #${techId}`;
+    }
+
+    // ============ DATE & UTILITY FUNCTIONS ============
     function formatDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
         date.setHours(date.getHours() + 8);
         return date.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
-    
+
     function formatDateOnly(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
         date.setHours(date.getHours() + 8);
         return date.toLocaleDateString('en-GB');
     }
-    
+
     function getMonthYear(dateString) {
         if (!dateString) return { month: 0, year: 0 };
         const date = new Date(dateString);
         return { month: date.getMonth() + 1, year: date.getFullYear() };
     }
-    
+
     function getMonthName(month) {
         const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         return months[month - 1] || '';
     }
-    
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
+
     function cleanText(text) {
         if (!text) return '';
         let cleaned = String(text);
@@ -675,7 +693,7 @@
         cleaned = cleaned.replace(/undefined/gi, '');
         return cleaned.trim();
     }
-    
+
     function toggleModalSize() {
         const modalDialog = document.querySelector('#reportModal .modal-dialog');
         const expandBtn = document.getElementById('expandModalBtn');
@@ -691,19 +709,19 @@
             isModalExpanded = true;
         }
     }
-    
+
     function checkUserRole() {
         currentUser = window.getCurrentUser();
         isTeamLeader = currentUser && currentUser.isAuthorized === true;
         currentTechnicianId = currentUser ? currentUser.id : null;
     }
-    
+
     function getImageUrl(imgPath) {
         if (!imgPath) return '';
         if (imgPath.startsWith('http')) return imgPath;
         return window.location.origin + (imgPath.startsWith('/') ? imgPath : '/' + imgPath);
     }
-    
+
     async function loadTechniciansForFilter() {
         try {
             const response = await fetch('/api/technicians');
@@ -718,12 +736,12 @@
             console.error('Error loading technicians:', error);
         }
     }
-    
+
     function applyDateFilter() {
         currentFilterMonth = document.getElementById('filterMonth').value;
         currentFilterYear = document.getElementById('filterYear').value;
         applyFilters();
-        
+
         const dateFilterInfo = document.getElementById('dateFilterInfo');
         if (currentFilterMonth !== 'all' && currentFilterYear !== 'all') {
             const monthName = getMonthName(parseInt(currentFilterMonth));
@@ -740,7 +758,7 @@
             dateFilterInfo.style.display = 'none';
         }
     }
-    
+
     function clearDateFilter() {
         document.getElementById('filterMonth').value = 'all';
         document.getElementById('filterYear').value = 'all';
@@ -749,23 +767,23 @@
         document.getElementById('dateFilterInfo').style.display = 'none';
         applyFilters();
     }
-    
+
     function clearFilters() {
         document.getElementById('filterStatus').value = 'all';
         document.getElementById('filterTechnician').value = 'all';
         document.getElementById('searchInput').value = '';
         clearDateFilter();
     }
-    
+
     function applyFilters() {
         const status = document.getElementById('filterStatus').value;
         const technicianId = document.getElementById('filterTechnician').value;
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const filterMonth = currentFilterMonth;
         const filterYear = currentFilterYear;
-        
+
         let filtered = [...allReports];
-        
+
         if (filterMonth !== 'all' || filterYear !== 'all') {
             filtered = filtered.filter(r => {
                 const { month, year } = getMonthYear(r.created_at);
@@ -775,51 +793,51 @@
                 return match;
             });
         }
-        
+
         if (technicianId !== 'all') {
             filtered = filtered.filter(r => r.technician_id == technicianId);
         }
-        
+
         if (status !== 'all') {
             if (status === 'pending') filtered = filtered.filter(r => !r.team_leader_acknowledged);
             if (status === 'acknowledged') filtered = filtered.filter(r => r.team_leader_acknowledged);
         }
-        
+
         if (searchTerm) {
-            filtered = filtered.filter(r => 
+            filtered = filtered.filter(r =>
                 (r.entity_name && r.entity_name.toLowerCase().includes(searchTerm)) ||
                 (r.problem_type && r.problem_type.toLowerCase().includes(searchTerm)) ||
                 r.id.toString().includes(searchTerm) ||
                 (r.reference_number && r.reference_number.toLowerCase().includes(searchTerm))
             );
         }
-        
+
         const total = filtered.length;
         const pending = filtered.filter(r => !r.team_leader_acknowledged).length;
         const acknowledged = filtered.filter(r => r.team_leader_acknowledged).length;
-        
+
         document.getElementById('statTotal').textContent = total;
         document.getElementById('statPending').textContent = pending;
         document.getElementById('statAcknowledged').textContent = acknowledged;
         document.getElementById('pendingCount').textContent = pending;
-        
+
         displayReports(filtered);
     }
-    
+
     async function loadReports() {
         const container = document.getElementById('reportsContainer');
         container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-info spinner-border-sm"></div><p class="mt-2 small">Loading water reports...</p></div>';
-        
+
         try {
             const response = await fetch('/api/technical-reports?type=water');
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             allReports = await response.json();
             if (!allReports) allReports = [];
-            
+
             applyFilters();
         } catch (error) {
             console.error('Error loading reports:', error);
@@ -832,10 +850,10 @@
             `;
         }
     }
-    
+
     function displayReports(reports) {
         const container = document.getElementById('reportsContainer');
-        
+
         if (reports.length === 0) {
             container.innerHTML = `
                 <div class="empty-reports text-center py-4">
@@ -847,7 +865,7 @@
             `;
             return;
         }
-        
+
         let tableHtml = `<div class="reports-table-wrapper">
             <table class="reports-table">
                 <thead>
@@ -865,15 +883,15 @@
                     </tr>
                 </thead>
                 <tbody>`;
-        
+
         reports.forEach(report => {
             const priorityClass = `priority-${report.priority}`;
             const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
             const isAcknowledged = report.team_leader_acknowledged;
             const statusHtml = isAcknowledged ? '<span class="status-acknowledged">✓ Acknowledged</span>' : '<span class="status-pending">⏳ Pending</span>';
             const isChecked = report.checked_by_assistant === true;
-            const techName = report.technician_name || 'Unknown';
-            
+            const techName = getTechnicianName(report.technician_id);
+
             tableHtml += `
                 <tr onclick="openReportDetail(${report.id})">
                     <td class="col-id"><span class="report-id-link">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
@@ -894,11 +912,11 @@
                 </tr>
             `;
         });
-        
+
         tableHtml += `</tbody></table></div>`;
         container.innerHTML = tableHtml;
     }
-    
+
     async function openReportDetail(id) {
         currentReportId = id;
         try {
@@ -907,21 +925,21 @@
             currentReport = reports.find(r => r.id === id);
             if (currentReport) {
                 displayReportModal();
-                
+
                 const editBtn = document.getElementById('editBtn');
                 const deleteBtn = document.getElementById('deleteBtn');
                 const acknowledgeBtn = document.getElementById('acknowledgeBtn');
-                
+
                 const isCreator = currentReport.technician_id == currentTechnicianId;
                 const canEditDelete = isCreator && !currentReport.team_leader_acknowledged;
-                
+
                 if (editBtn) editBtn.style.display = canEditDelete ? 'inline-block' : 'none';
                 if (deleteBtn) deleteBtn.style.display = canEditDelete ? 'inline-block' : 'none';
-                
+
                 if (acknowledgeBtn) {
                     acknowledgeBtn.style.display = (isTeamLeader && !currentReport.team_leader_acknowledged) ? 'inline-block' : 'none';
                 }
-                
+
                 if (isModalExpanded) {
                     const modalDialog = document.querySelector('#reportModal .modal-dialog');
                     const expandBtn = document.getElementById('expandModalBtn');
@@ -932,14 +950,14 @@
                         isModalExpanded = false;
                     }
                 }
-                
+
                 new bootstrap.Modal(document.getElementById('reportModal')).show();
             }
         } catch (error) {
             window.showToast('Error loading report', 'error');
         }
     }
-    
+
     function displayReportModal() {
         const report = currentReport;
         const typeIcon = '💧';
@@ -947,29 +965,30 @@
         const priorityClass = `priority-${report.priority}`;
         const isAcknowledged = report.team_leader_acknowledged;
         const isChecked = report.checked_by_assistant === true;
-        
+        const techName = getTechnicianName(report.technician_id);
+
         let imagesHtml = '';
         if (report.images && report.images.length > 0) {
             imagesHtml = `<div class="mt-3"><strong>Attached Images:</strong><div class="d-flex flex-wrap gap-3 mt-2">${report.images.map(img => `<img src="${getImageUrl(img)}" class="image-preview-large" onclick="window.open('${getImageUrl(img)}')" onerror="this.style.display='none'">`).join('')}</div></div>`;
         }
-        
+
         let commentsHtml = '';
         if (report.comments && report.comments.length > 0) {
             commentsHtml = `<div class="comment-section mt-3"><h6><i class="bi bi-chat-dots"></i> Comments</h6>${report.comments.map(c => `<div class="comment-item mb-2"><strong class="comment-author">${escapeHtml(c.author)}</strong> <span class="comment-date">${formatDate(c.created_at)}</span><div class="mt-1">${escapeHtml(c.text)}</div></div>`).join('')}</div>`;
         }
-        
+
         let acknowledgmentHtml = '';
         if (isAcknowledged) {
             acknowledgmentHtml = `<div class="alert alert-success mt-3"><i class="bi bi-check-circle"></i> <strong>Acknowledged</strong><br>By: ${escapeHtml(report.team_leader_name || 'Team Leader')}<br>Date: ${formatDate(report.team_leader_acknowledged_at)}<br>Comments: ${escapeHtml(report.team_leader_notes || 'No notes')}</div>`;
         } else if (isTeamLeader) {
             acknowledgmentHtml = `<div class="alert alert-warning mt-3"><button class="btn btn-success w-100" onclick="showAcknowledgeModal()"><i class="bi bi-check2-square"></i> Acknowledge Report</button></div>`;
         }
-        
+
         let assistantCheckHtml = '';
         if (isChecked) {
             assistantCheckHtml = `<div class="alert alert-info mt-2"><i class="bi bi-eye"></i> <strong>Checked by Assistant Team Leader</strong><br>By: ${escapeHtml(report.checked_by_assistant_name)}<br>Date: ${formatDate(report.checked_by_assistant_at)}</div>`;
         }
-        
+
         const html = `
             <div class="report-detail-container">
                 <div class="alert alert-info">
@@ -1001,7 +1020,7 @@
                 ${report.technician_notes ? `<div class="row mb-2"><div class="col-4 fw-bold">Technician Notes:</div><div class="col-8">${escapeHtml(report.technician_notes)}</div></div>` : ''}
                 <div class="row mb-2">
                     <div class="col-4 fw-bold">Submitted By:</div>
-                    <div class="col-8">${escapeHtml(report.technician_name || 'Unknown')}</div>
+                    <div class="col-8">${escapeHtml(techName)}</div>
                 </div>
                 ${assistantCheckHtml}
                 ${acknowledgmentHtml}
@@ -1012,12 +1031,12 @@
         `;
         document.getElementById('modalBody').innerHTML = html;
     }
-    
-    function showAddCommentModal() { 
-        document.getElementById('newComment').value = ''; 
-        new bootstrap.Modal(document.getElementById('commentModal')).show(); 
+
+    function showAddCommentModal() {
+        document.getElementById('newComment').value = '';
+        new bootstrap.Modal(document.getElementById('commentModal')).show();
     }
-    
+
     async function submitComment() {
         const comment = document.getElementById('newComment').value;
         const userName = localStorage.getItem('userName') || (isTeamLeader ? 'Team Leader' : 'Technician');
@@ -1025,55 +1044,55 @@
         try {
             let comments = currentReport.comments || [];
             comments.push({ author: userName, text: comment, created_at: new Date().toISOString() });
-            const response = await fetch(`/api/technical-reports/${currentReportId}`, { 
-                method: 'PUT', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ comments: comments }) 
+            const response = await fetch(`/api/technical-reports/${currentReportId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comments: comments })
             });
             const data = await response.json();
-            if (data.success) { 
-                window.showToast('Comment added'); 
-                bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide(); 
-                openReportDetail(currentReportId); 
+            if (data.success) {
+                window.showToast('Comment added');
+                bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
+                openReportDetail(currentReportId);
             }
-        } catch (error) { 
-            window.showToast('Error', 'error'); 
+        } catch (error) {
+            window.showToast('Error', 'error');
         }
     }
-    
-    function showAcknowledgeModal() { 
+
+    function showAcknowledgeModal() {
         if (!isTeamLeader) {
             window.showToast('Only Team Leaders can acknowledge reports', 'error');
             return;
         }
-        document.getElementById('acknowledgeComment').value = ''; 
-        new bootstrap.Modal(document.getElementById('acknowledgeModal')).show(); 
+        document.getElementById('acknowledgeComment').value = '';
+        new bootstrap.Modal(document.getElementById('acknowledgeModal')).show();
     }
-    
+
     async function submitAcknowledge() {
         const comment = document.getElementById('acknowledgeComment').value;
         const userId = localStorage.getItem('userId');
         try {
-            const response = await fetch(`/api/technical-reports/${currentReportId}/acknowledge`, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ team_leader_id: parseInt(userId), team_leader_notes: comment }) 
+            const response = await fetch(`/api/technical-reports/${currentReportId}/acknowledge`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ team_leader_id: parseInt(userId), team_leader_notes: comment })
             });
             const data = await response.json();
-            if (data.success) { 
-                window.showToast('Report acknowledged'); 
-                bootstrap.Modal.getInstance(document.getElementById('acknowledgeModal')).hide(); 
-                loadReports(); 
-                openReportDetail(currentReportId); 
+            if (data.success) {
+                window.showToast('Report acknowledged');
+                bootstrap.Modal.getInstance(document.getElementById('acknowledgeModal')).hide();
+                loadReports();
+                openReportDetail(currentReportId);
             } else {
                 window.showToast(data.error || 'Failed to acknowledge', 'error');
             }
-        } catch (error) { 
-            window.showToast('Error', 'error'); 
+        } catch (error) {
+            window.showToast('Error', 'error');
         }
     }
-    
-    function editReport() { 
+
+    function editReport() {
         if (currentReportId) {
             if (currentReport && currentReport.technician_id != currentTechnicianId) {
                 window.showToast('You can only edit your own reports', 'error');
@@ -1088,50 +1107,50 @@
             window.showToast('No report selected', 'error');
         }
     }
-    
+
     async function deleteReport() {
         if (!currentReportId) return;
-        
+
         if (currentReport && currentReport.technician_id != currentTechnicianId) {
             window.showToast('You can only delete your own reports', 'error');
             return;
         }
-        
+
         if (!confirm('Are you sure you want to delete this report? This action cannot be undone.')) return;
         try {
             const response = await fetch(`/api/technical-reports/${currentReportId}`, { method: 'DELETE' });
             const data = await response.json();
-            if (data.success) { 
-                window.showToast('Report deleted'); 
-                bootstrap.Modal.getInstance(document.getElementById('reportModal'))?.hide(); 
-                loadReports(); 
-            } else { 
-                window.showToast(data.error || 'Cannot delete', 'error'); 
+            if (data.success) {
+                window.showToast('Report deleted');
+                bootstrap.Modal.getInstance(document.getElementById('reportModal'))?.hide();
+                loadReports();
+            } else {
+                window.showToast(data.error || 'Cannot delete', 'error');
             }
-        } catch (error) { 
-            window.showToast('Error deleting', 'error'); 
+        } catch (error) {
+            window.showToast('Error deleting', 'error');
         }
     }
-    
+
     function printReport(id) {
         if (!id && currentReport) id = currentReport.id;
         if (!id) { window.showToast('No report to print', 'error'); return; }
-        
+
         const printWindow = window.open('', '_blank', 'width=900,height=700');
         const report = allReports.find(r => r.id === id);
         if (!report) { window.showToast('Report not found', 'error'); return; }
-        
+
         fetch(`/api/technical-reports/${id}/track-print`, { method: 'POST' }).catch(e => console.log(e));
-        
+
         printWindow.document.write(generatePrintHTML(report));
         printWindow.document.close();
     }
-    
+
     function generatePrintHTML(report) {
         const reportTypeIcon = '💧';
         const reportTypeName = 'Water';
         const currentDate = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        
+
         let complaintDetails = cleanText(report.complaint_details || '-');
         let actionTaken = cleanText(report.action_taken || '');
         let technicianNotes = cleanText(report.technician_notes || '');
@@ -1143,18 +1162,18 @@
         let referenceType = cleanText(report.reference_type || '');
         let problemType = cleanText(report.problem_type || '-');
         let entityName = cleanText(report.entity_name || report.entity_type || '');
-        let technicianName = cleanText(report.technician_name || 'Unknown');
+        let technicianName = cleanText(getTechnicianName(report.technician_id));
         let teamLeaderName = cleanText(report.team_leader_name || 'Team Leader');
         let assistantName = cleanText(report.checked_by_assistant_name || '');
         let referenceDate = cleanText(report.reference_date || '');
-        
+
         if (complaintDetails && complaintDetails.includes('\n')) {
             complaintDetails = complaintDetails.split('\n').map(line => `• ${line.trim()}`).join('<br>');
         }
         if (actionTaken && actionTaken.includes('\n')) {
             actionTaken = actionTaken.split('\n').map(line => `• ${line.trim()}`).join('<br>');
         }
-        
+
         let imagesHtml = '';
         if (report.images && report.images.length > 0) {
             imagesHtml = '<div style="margin-top:20px;"><strong>Attached Images:</strong><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:10px;">';
@@ -1163,7 +1182,7 @@
             });
             imagesHtml += '</div></div>';
         }
-        
+
         let commentsHtml = '';
         if (report.comments && report.comments.length > 0) {
             commentsHtml = '<div style="margin-top:20px;"><strong>Comments History:</strong><div style="margin-top:10px;">';
@@ -1173,12 +1192,12 @@
             });
             commentsHtml += '</div></div>';
         }
-        
+
         let assistantCheckHtml = '';
         if (report.checked_by_assistant) {
             assistantCheckHtml = `<tr><th>Assistant Checked By</th><td>${escapeHtml(assistantName)} on ${formatDate(report.checked_by_assistant_at)}</td></tr>`;
         }
-        
+
         return `<!DOCTYPE html>
         <html>
         <head><meta charset="UTF-8"><title>${reportTypeName} Technical Report #${report.id}</title>
@@ -1216,14 +1235,14 @@
                     <div class="divider"></div><div class="sub-divider"></div>
                     <h3 style="margin-top:12px;font-size:13pt;">Technical Report System - ${reportTypeName}</h3>
                 </div>
-                
+
                 <div class="report-id">
                     <div><strong>Report ID:</strong> #${report.id}</div>
                     <div><strong>Date:</strong> ${formatDate(report.created_at)}</div>
                     <div><strong>Type:</strong> ${reportTypeName} ${reportTypeIcon}</div>
                     <div><strong>Status:</strong> ${report.team_leader_acknowledged ? 'Acknowledged' : 'Pending Review'}</div>
                 </div>
-                
+
                 <table>
                     <tr><th>Entity Type</th><td>${report.entity_type === 'school' ? 'School' : 'Department'} </td>
                     <tr><th>Entity Name</th><td>${escapeHtml(entityName)}</td>
@@ -1242,10 +1261,10 @@
                     ${report.team_leader_acknowledged ? `<tr><th>Acknowledged By</th><td>${escapeHtml(teamLeaderName)} on ${formatDate(report.team_leader_acknowledged_at)}</td>` : ''}
                     ${teamLeaderNotes ? `<tr><th>Team Leader Notes</th><td style="white-space:pre-wrap;">${escapeHtml(teamLeaderNotes)}</td>` : ''}
                 </table>
-                
+
                 ${imagesHtml}
                 ${commentsHtml}
-                
+
                 <div class="signatures">
                     <div class="signature-box">
                         <div class="signature-line"></div>
@@ -1260,7 +1279,7 @@
                         <div>Date: ${report.team_leader_acknowledged ? formatDateOnly(report.team_leader_acknowledged_at) : '_________________'}</div>
                     </div>
                 </div>
-                
+
                 <div class="footer">
                     <p>This is an official technical report from Unit Kemudahan Asas, Ministry of Education, Brunei Darussalam.</p>
                     <p>Printed on: ${currentDate}</p>
@@ -1272,9 +1291,10 @@
         </body>
         </html>`;
     }
-    
+
     document.addEventListener('DOMContentLoaded', function() {
         checkUserRole();
+        loadTechnicians();
         loadTechniciansForFilter().then(() => {
             loadReports();
         });
