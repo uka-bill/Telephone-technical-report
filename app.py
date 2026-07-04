@@ -1,3 +1,4 @@
+app.py
 from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 import os
 from supabase import create_client
@@ -615,7 +616,8 @@ def update_technical_report(report_id):
         if not supabase:
             return jsonify({'error': 'Database not connected'}), 500
         data = request.get_json()
-        allowed_fields = ['problem_type', 'complaint_details', 'priority', 'priority_with_tender', 'status',
+        # Added 'report_type' and 'entity_type' to allowed fields
+        allowed_fields = ['report_type', 'entity_type', 'problem_type', 'complaint_details', 'priority', 'priority_with_tender', 'status',
                          'technician_notes', 'action_taken', 'images', 'account_number', 'meter_number',
                          'phone_number', 'number_of_lines', 'reference_type', 'reference_number', 'reference_date']
         update_data = {}
