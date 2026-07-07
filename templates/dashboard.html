@@ -776,7 +776,6 @@
         return '<i class="bi bi-file-text"></i>';
     }
     
-    // ============ NEW: Navigate to Mapping with Entity ============
     function goToMappingImages(entityType, entityId) {
         window.location.href = `/mapping?entity_type=${entityType}&entity_id=${entityId}`;
     }
@@ -794,7 +793,8 @@
     }
     
     function getTechnicianName(techId) {
-        return techniciansMap[techId] || `Tech #${techId}`;
+        if (!techId) return 'Unknown';
+        return techniciansMap[techId] || `Technician #${techId}`;
     }
     
     async function loadMappingImagesSummary() {
@@ -843,15 +843,17 @@
                 }
             });
             
-            mappingImagesData = Object.values(entityGroups);
-            
-            // Sort by latest upload date
-            mappingImagesData.sort((a, b) => {
+            // Convert to array and sort by latest upload date (newest first)
+            let grouped = Object.values(entityGroups);
+            grouped.sort((a, b) => {
                 if (a.uploaded_at && b.uploaded_at) {
                     return new Date(b.uploaded_at) - new Date(a.uploaded_at);
                 }
                 return 0;
             });
+            
+            // Limit to latest 10 entities
+            mappingImagesData = grouped.slice(0, 10);
             
             // Display in table
             displayMappingImagesTable(mappingImagesData);
@@ -931,21 +933,21 @@
             });
             document.getElementById('trendText').innerHTML = `<i class="bi bi-arrow-up"></i> ${last7Days.length} in last 7 days`;
             
-            // Display recent reports by type
-            displayRecentByType(waterReports.slice(0, 5), 'waterReportsList', '💧');
-            displayRecentByType(electricityReports.slice(0, 5), 'electricityReportsList', '⚡');
-            displayRecentByType(telephoneReports.slice(0, 5), 'telephoneReportsList', '📞');
+            // 🔥 Updated: Display recent reports by type (latest 10 instead of 5)
+            displayRecentByType(waterReports.slice(0, 10), 'waterReportsList', '💧');
+            displayRecentByType(electricityReports.slice(0, 10), 'electricityReportsList', '⚡');
+            displayRecentByType(telephoneReports.slice(0, 10), 'telephoneReportsList', '📞');
             
-            // Display pending acknowledgment table
+            // Display pending acknowledgment table (latest 10)
             displayPendingTable(pendingReports.slice(0, 10), techMap);
             
-            // Display acknowledged table
+            // Display acknowledged table (latest 10)
             displayAcknowledgedTable(acknowledgedReports.slice(0, 10), techMap);
             
             // Load image statistics
             await loadImageStats();
             
-            // Load mapping images summary
+            // Load mapping images summary (latest 10 entities)
             await loadMappingImagesSummary();
             
         } catch (error) {
@@ -1252,6 +1254,6 @@
     // Initialize
     loadTechnicians();
     loadDashboardData();
-    setInterval(loadDashboardData, 30000);
+    // No auto-refresh – user can manually refresh the page
 </script>
 {% endblock %}
