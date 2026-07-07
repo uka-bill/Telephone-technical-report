@@ -318,6 +318,23 @@
         background: #c8e6c9;
     }
 
+    /* Refresh Button */
+    .btn-refresh {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-weight: 600;
+        color: white;
+        transition: all 0.2s;
+        font-size: 12px;
+    }
+    .btn-refresh:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        color: white;
+    }
+
     .reports-table-container::-webkit-scrollbar {
         width: 6px;
         height: 6px;
@@ -529,7 +546,7 @@
     <p>Review, acknowledge, and manage technical reports submitted by technicians</p>
 </div>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
         <span class="auth-status-badge" id="authStatus">Checking...</span>
         <span class="notification-badge" id="notificationCount" style="display: none;">
@@ -537,6 +554,9 @@
         </span>
     </div>
     <div class="d-flex gap-2">
+        <button class="btn-refresh" onclick="loadTeamLeaderData()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
         <button class="expand-all-btn" onclick="expandAllSections()"><i class="bi bi-arrows-expand"></i> Expand All</button>
         <button class="collapse-all-btn" onclick="collapseAllSections()"><i class="bi bi-arrows-collapse"></i> Collapse All</button>
     </div>
@@ -833,7 +853,7 @@
         }
 
         loadTeamLeaderData();
-        setInterval(loadTeamLeaderData, 15000);
+        // Auto-refresh removed
     }
 
     async function loadTeamLeaderData() {
