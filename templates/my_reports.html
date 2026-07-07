@@ -258,6 +258,23 @@
         background: #bbdefb;
     }
 
+    /* Refresh Button */
+    .btn-refresh {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-weight: 600;
+        color: white;
+        transition: all 0.2s;
+        font-size: 12px;
+    }
+    .btn-refresh:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        color: white;
+    }
+
     /* Date Filter Bar */
     .date-filter-bar {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -494,6 +511,9 @@
     <div class="stats-badge">
         <i class="bi bi-envelope"></i> My Pending: <span id="pendingCount">0</span>
     </div>
+    <button class="btn-refresh" onclick="loadReports()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
 </div>
 
 <!-- Statistics Cards -->
@@ -1318,7 +1338,7 @@
         await loadTechnicians();
         await getCurrentTechnician();
         await loadReports();
-        setInterval(loadReports, 30000);
+        // Auto-refresh removed
     }
     init();
 </script>
