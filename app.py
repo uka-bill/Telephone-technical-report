@@ -1,3 +1,4 @@
+app.py
 from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 import os
 from supabase import create_client
@@ -1093,6 +1094,151 @@ def export_reports():
         return send_file(io.BytesIO(output.getvalue().encode('utf-8-sig')), mimetype='text/csv', as_attachment=True, download_name=filename)
     except Exception as e:
         app.logger.error(f"Error exporting reports: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ============ BACKUP & RESTORE ============
+
+@app.route('/api/backup', methods=['GET'])
+def backup_data():
+    """Export all data as JSON backup"""
+    try:
+        if not supabase:
+            return jsonify({'success': False, 'error': 'Database not connected'}), 500
+
+        # Check authorization
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'User ID required'}), 400
+
+        auth_response = supabase.table("technicians").select("is_authorized, role, can_edit_technicians").eq("id", int(user_id)).execute()
+        if not auth_response.data:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+
+        user = auth_response.data[0]
+        is_authorized = user.get('is_authorized', False)
+        is_senior = user.get('role') == 'senior_technician'
+        can_edit = user.get('can_edit_technicians', False)
+
+        if not (is_authorized or is_senior or can_edit):
+            return jsonify({'success': False, 'error': 'You are not authorized to perform backup'}), 403
+
+        # Fetch all data
+        tables = ['technicians', 'schools', 'departments', 'technical_reports', 'mapping_images', 'mapping_locations']
+        backup_data = {}
+        
+        for table in tables:
+            response = supabase.table(table).select("*").execute()
+            backup_data[table] = response.data if response.data else []
+
+        # Add metadata
+        backup_data['_backup_info'] = {
+            'version': '1.0',
+            'timestamp': get_brunei_time_iso(),
+            'user_id': int(user_id),
+            'total_records': sum(len(backup_data[t]) for t in tables)
+        }
+
+        app.logger.info(f"Backup created by user {user_id} with {backup_data['_backup_info']['total_records']} records")
+        return jsonify({'success': True, 'data': backup_data})
+
+    except Exception as e:
+        app.logger.error(f"Backup error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/restore', methods=['POST'])
+def restore_data():
+    """
+    Restore data from a backup JSON.
+    Handles foreign key constraints by using the correct order:
+    - Delete: mapping_locations → mapping_images → technical_reports → technicians → schools → departments
+    - Insert: technicians → schools → departments → technical_reports → mapping_images → mapping_locations
+    """
+    try:
+        if not supabase:
+            return jsonify({'success': False, 'error': 'Database not connected'}), 500
+
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+        backup_data = data.get('backup_data')
+        user_id = data.get('user_id')
+
+        if not backup_data or not user_id:
+            return jsonify({'success': False, 'error': 'Missing backup data or user ID'}), 400
+
+        # Check authorization
+        auth_response = supabase.table("technicians").select("is_authorized, role, can_edit_technicians").eq("id", int(user_id)).execute()
+        if not auth_response.data:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+
+        user = auth_response.data[0]
+        is_authorized = user.get('is_authorized', False)
+        is_senior = user.get('role') == 'senior_technician'
+        can_edit = user.get('can_edit_technicians', False)
+
+        if not (is_authorized or is_senior or can_edit):
+            return jsonify({'success': False, 'error': 'You are not authorized to perform restore'}), 403
+
+        # Validate backup format
+        if '_backup_info' not in backup_data:
+            return jsonify({'success': False, 'error': 'Invalid backup file: missing metadata'}), 400
+
+        # Define tables in order of dependencies
+        # For deletion: delete child tables first (reverse dependency order)
+        delete_order = ['mapping_locations', 'mapping_images', 'technical_reports', 'technicians', 'schools', 'departments']
+        # For insertion: insert parent tables first (dependency order)
+        insert_order = ['technicians', 'schools', 'departments', 'technical_reports', 'mapping_images', 'mapping_locations']
+
+        restored_count = 0
+
+        # ---------- STEP 1: DELETE ALL EXISTING DATA ----------
+        for table in delete_order:
+            if table not in backup_data:
+                app.logger.warning(f"Table {table} not in backup, skipping deletion")
+                continue
+            try:
+                # Delete all rows (neq('id', 0) works for numeric IDs)
+                supabase.table(table).delete().neq('id', 0).execute()
+                app.logger.info(f"Cleared table: {table}")
+            except Exception as e:
+                app.logger.error(f"Error clearing table {table}: {e}")
+                # If clearing fails, abort restore (data integrity issue)
+                return jsonify({'success': False, 'error': f'Failed to clear table {table}: {str(e)}'}), 500
+
+        # ---------- STEP 2: INSERT DATA IN CORRECT ORDER ----------
+        for table in insert_order:
+            if table not in backup_data:
+                app.logger.warning(f"Table {table} not in backup, skipping insertion")
+                continue
+
+            records = backup_data[table]
+            if not records:
+                app.logger.info(f"Table {table} has no records to restore")
+                continue
+
+            # Insert records one by one to handle errors gracefully
+            for record in records:
+                try:
+                    # Remove any fields that might cause issues (e.g., Supabase-generated fields)
+                    # We keep 'id' to maintain relationships
+                    insert_record = {k: v for k, v in record.items() if k not in ['created_at', 'updated_at']}
+                    # Add timestamps if missing (they will be set by Supabase triggers anyway)
+                    supabase.table(table).insert(insert_record).execute()
+                    restored_count += 1
+                except Exception as e:
+                    # Log error but continue to restore remaining records
+                    app.logger.error(f"Error restoring record in {table}: {e} (record: {record.get('id', 'unknown')})")
+                    # If it's a critical table (like technicians), we might want to abort
+                    if table == 'technicians':
+                        return jsonify({'success': False, 'error': f'Failed to restore critical table {table}: {str(e)}'}), 500
+
+        app.logger.info(f"Restore completed by user {user_id}, restored {restored_count} records")
+        return jsonify({'success': True, 'message': f'Restore successful, {restored_count} records restored'})
+
+    except Exception as e:
+        app.logger.error(f"Restore error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ HEALTH CHECK ============
