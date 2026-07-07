@@ -2,7 +2,243 @@
 
 {% block content %}
 <style>
-    /* ... (same CSS as before, with .btn-refresh added) ... */
+    .filter-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .stats-badge {
+        background-color: #17a2b8;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+    }
+    .filter-select {
+        width: 100%;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+    .section-header {
+        background: linear-gradient(135deg, #e3f2fd 0%, #fff 100%);
+        padding: 10px 15px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+        border-left: 3px solid #17a2b8;
+    }
+    .section-header:hover {
+        background: linear-gradient(135deg, #fff 0%, #e3f2fd 100%);
+    }
+    .section-title {
+        font-weight: bold;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .section-count {
+        background: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: #17a2b8;
+    }
+    .section-toggle-icon {
+        font-size: 1rem;
+    }
+    .category-container {
+        margin-bottom: 20px;
+    }
+    .reports-table-wrapper {
+        max-height: 500px;
+        overflow-y: auto;
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        background: white;
+    }
+    .reports-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        table-layout: fixed;
+    }
+    .reports-table th {
+        background: #f8f9fa;
+        padding: 10px 8px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 10px;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        position: sticky;
+        top: 0;
+        background: #f8f9fa;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    .reports-table td {
+        padding: 8px 8px;
+        border-bottom: 1px solid #e9ecef;
+        cursor: pointer;
+        transition: background 0.2s;
+        vertical-align: middle;
+    }
+    .reports-table tr:hover td {
+        background-color: #f8f5fc;
+    }
+    .group-header-row {
+        background-color: #e8f0fe;
+        font-weight: bold;
+    }
+    .group-header-row td {
+        background-color: #e8f0fe;
+        border-bottom: 2px solid #17a2b8;
+        padding: 8px 8px;
+        font-weight: 600;
+        color: #0c5460;
+    }
+    .group-header-row:hover td {
+        background-color: #e8f0fe;
+    }
+    .priority-high {
+        color: #dc3545;
+        font-weight: 600;
+        font-size: 11px;
+    }
+    .priority-medium {
+        color: #fd7e14;
+        font-weight: 600;
+        font-size: 11px;
+    }
+    .priority-low {
+        color: #28a745;
+        font-weight: 600;
+        font-size: 11px;
+    }
+    .status-pending {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 15px;
+        font-size: 10px;
+        font-weight: 500;
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .status-acknowledged {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 15px;
+        font-size: 10px;
+        font-weight: 500;
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .checked-badge {
+        background-color: #17a2b8;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 8px;
+        font-size: 8px;
+        display: inline-block;
+        margin-left: 4px;
+    }
+    .report-id-link {
+        font-weight: 600;
+        color: #17a2b8;
+        text-decoration: none;
+        font-size: 11px;
+    }
+    .report-id-link:hover {
+        text-decoration: underline;
+    }
+    .col-id { width: 45px; min-width: 45px; max-width: 45px; }
+    .col-entity { width: auto; min-width: 120px; }
+    .col-ref-number { width: 80px; min-width: 70px; max-width: 100px; }
+    .col-ref-date { width: 70px; min-width: 60px; max-width: 85px; }
+    .col-problem { width: auto; min-width: 120px; }
+    .col-priority { width: 60px; min-width: 55px; max-width: 70px; }
+    .col-submitted { width: 120px; min-width: 100px; max-width: 150px; }
+    .col-status { width: 85px; min-width: 75px; max-width: 110px; }
+    .col-date { width: 75px; min-width: 70px; max-width: 90px; }
+    .col-actions { width: 80px; min-width: 70px; max-width: 100px; }
+    .entity-name, .reference-number-cell, .reference-date-cell {
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 130px;
+    }
+    .problem-type {
+        max-width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 11px;
+    }
+    .date-cell {
+        font-size: 10px;
+        white-space: nowrap;
+    }
+    .priority-icon {
+        font-size: 10px;
+        margin-right: 2px;
+    }
+    .empty-section {
+        text-align: center;
+        padding: 30px;
+        color: #999;
+        font-size: 13px;
+    }
+
+    /* Action buttons */
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+    .btn-action {
+        padding: 4px 6px;
+        font-size: 10px;
+        border-radius: 6px;
+        border: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .btn-action:hover {
+        transform: translateY(-1px);
+    }
+    .btn-view {
+        background: #e3f2fd;
+        color: #0d47a1;
+    }
+    .btn-view:hover {
+        background: #bbdefb;
+    }
+    .btn-print {
+        background: #e8f5e9;
+        color: #1b5e20;
+    }
+    .btn-print:hover {
+        background: #c8e6c9;
+    }
+
+    /* Refresh Button */
     .btn-refresh {
         background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
         border: none;
@@ -18,7 +254,191 @@
         box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
         color: white;
     }
-    /* ... rest of CSS unchanged ... */
+
+    /* Date Filter Bar */
+    .date-filter-bar {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #e0e0e0;
+    }
+    .filter-label {
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 3px;
+        color: #495057;
+    }
+    .filter-info {
+        font-size: 11px;
+        margin-top: 8px;
+        padding: 5px 10px;
+        background: #e8f0fe;
+        border-radius: 6px;
+        color: #17a2b8;
+        display: inline-block;
+    }
+    .date-filter-select {
+        width: 100%;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        font-size: 12px;
+    }
+    .btn-sm {
+        padding: 5px 12px;
+        font-size: 11px;
+        border-radius: 5px;
+    }
+    .btn-apply, .btn-apply-filters {
+        background-color: #17a2b8;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-apply:hover, .btn-apply-filters:hover {
+        background-color: #138496;
+    }
+    .btn-clear, .btn-clear-filters {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-clear:hover, .btn-clear-filters:hover {
+        background-color: #5a6268;
+    }
+
+    /* Statistics Cards */
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 12px 15px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+        border: 1px solid #eef2f7;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+    .stat-icon.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .stat-icon.warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+    .stat-icon.success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+    .stat-number {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: #2c3e50;
+        line-height: 1.2;
+    }
+    .stat-label {
+        color: #7f8d8d;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .form-control-sm {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .reports-table-wrapper::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+    .reports-table-wrapper::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    .reports-table-wrapper::-webkit-scrollbar-thumb {
+        background: #17a2b8;
+        border-radius: 10px;
+    }
+
+    /* Modal Styles */
+    .modal-fullscreen {
+        max-width: 95%;
+        width: 95%;
+        margin: 1rem auto;
+    }
+    .modal-fullscreen .modal-body {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    .modal-header .btn-expand {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-left: 10px;
+    }
+    .report-detail-container {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    .report-detail-container .row {
+        margin-bottom: 8px;
+    }
+    .image-preview-large {
+        max-width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .comment-section {
+        background-color: #f8f5fc;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+        border-left: 3px solid #17a2b8;
+    }
+    .comment-item {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #eee;
+    }
+    .comment-author {
+        font-weight: bold;
+        color: #17a2b8;
+        font-size: 12px;
+    }
+    .comment-date {
+        font-size: 10px;
+        color: #999;
+        margin-left: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .col-id { width: 35px; min-width: 35px; }
+        .col-ref-number { width: 60px; min-width: 50px; }
+        .col-ref-date { width: 50px; min-width: 45px; }
+        .col-priority { width: 45px; min-width: 40px; }
+        .col-submitted { width: 80px; min-width: 60px; }
+        .col-status { width: 65px; min-width: 55px; }
+        .col-date { width: 60px; min-width: 55px; }
+        .col-actions { width: 70px; min-width: 60px; }
+        .btn-action { width: 22px; height: 22px; font-size: 9px; }
+        .reports-table th, .reports-table td { padding: 6px 5px; font-size: 10px; }
+        .status-pending, .status-acknowledged { font-size: 8px; padding: 2px 5px; }
+    }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -33,11 +453,873 @@
     </div>
 </div>
 
-<!-- ... rest of the page unchanged (stat cards, filters, table, modals, scripts) ... -->
+<!-- Statistics Cards -->
+<div class="row mb-3">
+    <div class="col-md-4 mb-2">
+        <div class="stat-card">
+            <div class="stat-icon primary">
+                <i class="bi bi-file-text"></i>
+            </div>
+            <div>
+                <div class="stat-number" id="statTotal">0</div>
+                <div class="stat-label">Total Water Reports</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-2">
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <div class="stat-number" id="statPending">0</div>
+                <div class="stat-label">Pending Acknowledgment</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-2">
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <div class="stat-number" id="statAcknowledged">0</div>
+                <div class="stat-label">Acknowledged</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Date Filter Section -->
+<div class="date-filter-bar">
+    <div class="row align-items-end">
+        <div class="col-md-3">
+            <div class="filter-label">Month</div>
+            <select id="filterMonth" class="date-filter-select">
+                <option value="all">All Months</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <div class="filter-label">Year</div>
+            <select id="filterYear" class="date-filter-select">
+                <option value="all">All Years</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
+                <option value="2031">2031</option>
+                <option value="2032">2032</option>
+                <option value="2033">2033</option>
+                <option value="2034">2034</option>
+                <option value="2035">2035</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <div class="filter-label">&nbsp;</div>
+            <div class="d-flex gap-2">
+                <button class="btn-apply btn-sm" onclick="applyDateFilter()"><i class="bi bi-funnel"></i> Apply</button>
+                <button class="btn-clear btn-sm" onclick="clearDateFilter()"><i class="bi bi-x-circle"></i> Clear</button>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div id="dateFilterInfo" style="display: none; font-size: 11px; color: #666;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Filter Section -->
+<div class="filter-card py-2">
+    <div class="row align-items-end">
+        <div class="col-md-3">
+            <label class="form-label fw-bold small mb-1">Status</label>
+            <select class="form-select form-select-sm" id="filterStatus">
+                <option value="all">All Status</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="acknowledged">✓ Acknowledged</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label fw-bold small mb-1">Technician</label>
+            <select class="form-select form-select-sm" id="filterTechnician">
+                <option value="all">All Technicians</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold small mb-1">Search</label>
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search by Entity, Problem Type, or ID...">
+        </div>
+        <div class="col-md-2">
+            <div class="d-flex gap-2">
+                <button class="btn-apply-filters btn-sm" onclick="applyFilters()"><i class="bi bi-search"></i> Apply</button>
+                <button class="btn-clear-filters btn-sm" onclick="clearFilters()"><i class="bi bi-eraser"></i> Clear All</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="reportsContainer">
+    <div class="text-center py-4">
+        <div class="spinner-border text-info spinner-border-sm" role="status"></div>
+        <p class="mt-2 small">Loading water reports...</p>
+    </div>
+</div>
+
+<!-- Hidden iframe for printing -->
+<iframe id="printIframe" style="position:absolute;width:0;height:0;border:0;visibility:hidden"></iframe>
+
+<!-- Report Detail Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title">Water Report Details</h5>
+                <button type="button" class="btn-expand" id="expandModalBtn" onclick="toggleModalSize()">
+                    <i class="bi bi-arrows-fullscreen"></i>
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody" style="max-height: 70vh; overflow-y: auto;">Loading...</div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="printReport()">Print</button>
+                <button type="button" class="btn btn-warning btn-sm" onclick="editReport()" id="editBtn">Edit</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteReport()" id="deleteBtn">Delete</button>
+                <button type="button" class="btn btn-success btn-sm" id="acknowledgeBtn" onclick="showAcknowledgeModal()" style="display: none;">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acknowledge Modal -->
+<div class="modal fade" id="acknowledgeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title"><i class="bi bi-check2-square"></i> Acknowledge Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="acknowledgeComment" rows="4" placeholder="Enter your review comments..."></textarea>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="submitAcknowledge()">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Comment Modal -->
+<div class="modal fade" id="commentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title">Add Comment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="newComment" rows="3" placeholder="Enter your comment..."></textarea>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="submitComment()">Add Comment</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    // ... all existing JavaScript ...
-    // The loadReports() function is called on DOMContentLoaded.
-    // NO setInterval used.
+    let currentReport = null;
+    let currentReportId = null;
+    let isTeamLeader = false;
+    let currentUser = null;
+    let currentTechnicianId = null;
+    let allReports = [];
+    let isModalExpanded = false;
+    let currentFilterMonth = 'all';
+    let currentFilterYear = 'all';
+    let techniciansMap = {};
+
+    // ============ TECHNICIAN HELPER ============
+    async function loadTechnicians() {
+        try {
+            const response = await fetch('/api/technicians');
+            const techs = await response.json();
+            techs.forEach(tech => {
+                techniciansMap[tech.id] = tech.name;
+            });
+        } catch (error) {
+            console.error('Error loading technicians:', error);
+        }
+    }
+
+    function getTechnicianName(techId) {
+        if (!techId) return 'Unassigned';
+        return techniciansMap[techId] || `Technician #${techId}`;
+    }
+
+    // ============ DATE & UTILITY FUNCTIONS ============
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        date.setHours(date.getHours() + 8);
+        return date.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDateOnly(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        date.setHours(date.getHours() + 8);
+        return date.toLocaleDateString('en-GB');
+    }
+
+    function getMonthYear(dateString) {
+        if (!dateString) return { month: 0, year: 0 };
+        const date = new Date(dateString);
+        return { month: date.getMonth() + 1, year: date.getFullYear() };
+    }
+
+    function getMonthName(month) {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return months[month - 1] || '';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function cleanText(text) {
+        if (!text) return '';
+        let cleaned = String(text);
+        cleaned = cleaned.replace(/NonNullable/gi, '');
+        cleaned = cleaned.replace(/Non-Nullable/gi, '');
+        cleaned = cleaned.replace(/null/gi, '');
+        cleaned = cleaned.replace(/undefined/gi, '');
+        return cleaned.trim();
+    }
+
+    function toggleModalSize() {
+        const modalDialog = document.querySelector('#reportModal .modal-dialog');
+        const expandBtn = document.getElementById('expandModalBtn');
+        if (isModalExpanded) {
+            modalDialog.classList.remove('modal-fullscreen');
+            modalDialog.classList.add('modal-xl');
+            expandBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+            isModalExpanded = false;
+        } else {
+            modalDialog.classList.remove('modal-xl');
+            modalDialog.classList.add('modal-fullscreen');
+            expandBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+            isModalExpanded = true;
+        }
+    }
+
+    function checkUserRole() {
+        currentUser = window.getCurrentUser();
+        isTeamLeader = currentUser && currentUser.isAuthorized === true;
+        currentTechnicianId = currentUser ? currentUser.id : null;
+    }
+
+    function getImageUrl(imgPath) {
+        if (!imgPath) return '';
+        if (imgPath.startsWith('http')) return imgPath;
+        return window.location.origin + (imgPath.startsWith('/') ? imgPath : '/' + imgPath);
+    }
+
+    async function loadTechniciansForFilter() {
+        try {
+            const response = await fetch('/api/technicians');
+            const techs = await response.json();
+            const select = document.getElementById('filterTechnician');
+            let options = '<option value="all">All Technicians</option>';
+            techs.forEach(tech => {
+                options += `<option value="${tech.id}">${tech.role === 'senior_technician' ? '⭐' : '👤'} ${escapeHtml(tech.name)}</option>`;
+            });
+            select.innerHTML = options;
+        } catch (error) {
+            console.error('Error loading technicians:', error);
+        }
+    }
+
+    function applyDateFilter() {
+        currentFilterMonth = document.getElementById('filterMonth').value;
+        currentFilterYear = document.getElementById('filterYear').value;
+        applyFilters();
+
+        const dateFilterInfo = document.getElementById('dateFilterInfo');
+        if (currentFilterMonth !== 'all' && currentFilterYear !== 'all') {
+            const monthName = getMonthName(parseInt(currentFilterMonth));
+            dateFilterInfo.innerHTML = `<i class="bi bi-calendar-check"></i> Showing ${monthName} ${currentFilterYear}`;
+            dateFilterInfo.style.display = 'block';
+        } else if (currentFilterYear !== 'all') {
+            dateFilterInfo.innerHTML = `<i class="bi bi-calendar-check"></i> Showing year ${currentFilterYear}`;
+            dateFilterInfo.style.display = 'block';
+        } else if (currentFilterMonth !== 'all') {
+            const monthName = getMonthName(parseInt(currentFilterMonth));
+            dateFilterInfo.innerHTML = `<i class="bi bi-calendar-check"></i> Showing ${monthName} (all years)`;
+            dateFilterInfo.style.display = 'block';
+        } else {
+            dateFilterInfo.style.display = 'none';
+        }
+    }
+
+    function clearDateFilter() {
+        document.getElementById('filterMonth').value = 'all';
+        document.getElementById('filterYear').value = 'all';
+        currentFilterMonth = 'all';
+        currentFilterYear = 'all';
+        document.getElementById('dateFilterInfo').style.display = 'none';
+        applyFilters();
+    }
+
+    function clearFilters() {
+        document.getElementById('filterStatus').value = 'all';
+        document.getElementById('filterTechnician').value = 'all';
+        document.getElementById('searchInput').value = '';
+        clearDateFilter();
+    }
+
+    function applyFilters() {
+        const status = document.getElementById('filterStatus').value;
+        const technicianId = document.getElementById('filterTechnician').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filterMonth = currentFilterMonth;
+        const filterYear = currentFilterYear;
+
+        let filtered = [...allReports];
+
+        if (filterMonth !== 'all' || filterYear !== 'all') {
+            filtered = filtered.filter(r => {
+                const { month, year } = getMonthYear(r.created_at);
+                let match = true;
+                if (filterMonth !== 'all') match = match && month == filterMonth;
+                if (filterYear !== 'all') match = match && year == filterYear;
+                return match;
+            });
+        }
+
+        if (technicianId !== 'all') {
+            filtered = filtered.filter(r => r.technician_id == technicianId);
+        }
+
+        if (status !== 'all') {
+            if (status === 'pending') filtered = filtered.filter(r => !r.team_leader_acknowledged);
+            if (status === 'acknowledged') filtered = filtered.filter(r => r.team_leader_acknowledged);
+        }
+
+        if (searchTerm) {
+            filtered = filtered.filter(r =>
+                (r.entity_name && r.entity_name.toLowerCase().includes(searchTerm)) ||
+                (r.problem_type && r.problem_type.toLowerCase().includes(searchTerm)) ||
+                r.id.toString().includes(searchTerm) ||
+                (r.reference_number && r.reference_number.toLowerCase().includes(searchTerm))
+            );
+        }
+
+        const total = filtered.length;
+        const pending = filtered.filter(r => !r.team_leader_acknowledged).length;
+        const acknowledged = filtered.filter(r => r.team_leader_acknowledged).length;
+
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statPending').textContent = pending;
+        document.getElementById('statAcknowledged').textContent = acknowledged;
+        document.getElementById('pendingCount').textContent = pending;
+
+        displayReports(filtered);
+    }
+
+    async function loadReports() {
+        const container = document.getElementById('reportsContainer');
+        container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-info spinner-border-sm"></div><p class="mt-2 small">Loading water reports...</p></div>';
+
+        try {
+            const response = await fetch('/api/technical-reports?type=water');
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            allReports = await response.json();
+            if (!allReports) allReports = [];
+
+            applyFilters();
+        } catch (error) {
+            console.error('Error loading reports:', error);
+            container.innerHTML = `
+                <div class="text-center py-4 text-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <p class="small">Error loading reports: ${error.message}</p>
+                    <button class="btn btn-primary btn-sm" onclick="loadReports()">Try Again</button>
+                </div>
+            `;
+        }
+    }
+
+    function displayReports(reports) {
+        const container = document.getElementById('reportsContainer');
+
+        if (reports.length === 0) {
+            container.innerHTML = `
+                <div class="empty-reports text-center py-4">
+                    <i class="bi bi-inbox" style="font-size: 32px; color: #ccc;"></i>
+                    <h5 class="mt-2">No Water Reports Found</h5>
+                    <p class="small text-muted">There are no water reports matching your filters.</p>
+                    <a href="/new-report" class="btn btn-primary btn-sm mt-2">Create New Report</a>
+                </div>
+            `;
+            return;
+        }
+
+        let tableHtml = `<div class="reports-table-wrapper">
+            <table class="reports-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th class="col-entity">Entity Name</th>
+                        <th class="col-ref-number">Reference #</th>
+                        <th class="col-ref-date">Ref Date</th>
+                        <th class="col-problem">Problem Type</th>
+                        <th class="col-priority">Priority</th>
+                        <th class="col-submitted">Submitted By</th>
+                        <th class="col-status">Status</th>
+                        <th class="col-date">Date</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        reports.forEach(report => {
+            const priorityClass = `priority-${report.priority}`;
+            const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
+            const isAcknowledged = report.team_leader_acknowledged;
+            const statusHtml = isAcknowledged ? '<span class="status-acknowledged">✓ Acknowledged</span>' : '<span class="status-pending">⏳ Pending</span>';
+            const isChecked = report.checked_by_assistant === true;
+            const techName = getTechnicianName(report.technician_id);
+
+            tableHtml += `
+                <tr onclick="openReportDetail(${report.id})">
+                    <td class="col-id"><span class="report-id-link">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
+                    <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}">${escapeHtml(report.entity_name || report.entity_type)}</td>
+                    <td class="col-ref-number reference-number-cell" title="${escapeHtml(report.reference_number || '-')}">${escapeHtml(report.reference_number || '-')}</td>
+                    <td class="col-ref-date reference-date-cell" title="${escapeHtml(report.reference_date || '-')}">${escapeHtml(report.reference_date || '-')}</td>
+                    <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}">${escapeHtml(report.problem_type || '-')}</td>
+                    <td class="col-priority ${priorityClass}"><span class="priority-icon">${priorityIcon}</span> ${report.priority.toUpperCase()}</td>
+                    <td class="col-submitted">${escapeHtml(techName)}</td>
+                    <td class="col-status">${statusHtml}</td>
+                    <td class="col-date date-cell">${formatDateOnly(report.created_at)}</td>
+                    <td class="col-actions">
+                        <div class="action-buttons">
+                            <button class="btn-action btn-view" onclick="event.stopPropagation(); openReportDetail(${report.id})" title="View"><i class="bi bi-eye"></i></button>
+                            <button class="btn-action btn-print" onclick="event.stopPropagation(); printReport(${report.id})" title="Print"><i class="bi bi-printer"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `</tbody></table></div>`;
+        container.innerHTML = tableHtml;
+    }
+
+    async function openReportDetail(id) {
+        currentReportId = id;
+        try {
+            const response = await fetch('/api/technical-reports');
+            const reports = await response.json();
+            currentReport = reports.find(r => r.id === id);
+            if (currentReport) {
+                displayReportModal();
+
+                const editBtn = document.getElementById('editBtn');
+                const deleteBtn = document.getElementById('deleteBtn');
+                const acknowledgeBtn = document.getElementById('acknowledgeBtn');
+
+                const isCreator = currentReport.technician_id == currentTechnicianId;
+                const canEditDelete = isCreator && !currentReport.team_leader_acknowledged;
+
+                if (editBtn) editBtn.style.display = canEditDelete ? 'inline-block' : 'none';
+                if (deleteBtn) deleteBtn.style.display = canEditDelete ? 'inline-block' : 'none';
+
+                if (acknowledgeBtn) {
+                    acknowledgeBtn.style.display = (isTeamLeader && !currentReport.team_leader_acknowledged) ? 'inline-block' : 'none';
+                }
+
+                if (isModalExpanded) {
+                    const modalDialog = document.querySelector('#reportModal .modal-dialog');
+                    const expandBtn = document.getElementById('expandModalBtn');
+                    if (modalDialog) {
+                        modalDialog.classList.remove('modal-fullscreen');
+                        modalDialog.classList.add('modal-xl');
+                        expandBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+                        isModalExpanded = false;
+                    }
+                }
+
+                new bootstrap.Modal(document.getElementById('reportModal')).show();
+            }
+        } catch (error) {
+            window.showToast('Error loading report', 'error');
+        }
+    }
+
+    function displayReportModal() {
+        const report = currentReport;
+        const typeIcon = '💧';
+        const typeName = 'Water';
+        const priorityClass = `priority-${report.priority}`;
+        const isAcknowledged = report.team_leader_acknowledged;
+        const isChecked = report.checked_by_assistant === true;
+        const techName = getTechnicianName(report.technician_id);
+
+        let imagesHtml = '';
+        if (report.images && report.images.length > 0) {
+            imagesHtml = `<div class="mt-3"><strong>Attached Images:</strong><div class="d-flex flex-wrap gap-3 mt-2">${report.images.map(img => `<img src="${getImageUrl(img)}" class="image-preview-large" onclick="window.open('${getImageUrl(img)}')" onerror="this.style.display='none'">`).join('')}</div></div>`;
+        }
+
+        let commentsHtml = '';
+        if (report.comments && report.comments.length > 0) {
+            commentsHtml = `<div class="comment-section mt-3"><h6><i class="bi bi-chat-dots"></i> Comments</h6>${report.comments.map(c => `<div class="comment-item mb-2"><strong class="comment-author">${escapeHtml(c.author)}</strong> <span class="comment-date">${formatDate(c.created_at)}</span><div class="mt-1">${escapeHtml(c.text)}</div></div>`).join('')}</div>`;
+        }
+
+        let acknowledgmentHtml = '';
+        if (isAcknowledged) {
+            acknowledgmentHtml = `<div class="alert alert-success mt-3"><i class="bi bi-check-circle"></i> <strong>Acknowledged</strong><br>By: ${escapeHtml(report.team_leader_name || 'Team Leader')}<br>Date: ${formatDate(report.team_leader_acknowledged_at)}<br>Comments: ${escapeHtml(report.team_leader_notes || 'No notes')}</div>`;
+        } else if (isTeamLeader) {
+            acknowledgmentHtml = `<div class="alert alert-warning mt-3"><button class="btn btn-success w-100" onclick="showAcknowledgeModal()"><i class="bi bi-check2-square"></i> Acknowledge Report</button></div>`;
+        }
+
+        let assistantCheckHtml = '';
+        if (isChecked) {
+            assistantCheckHtml = `<div class="alert alert-info mt-2"><i class="bi bi-eye"></i> <strong>Checked by Assistant Team Leader</strong><br>By: ${escapeHtml(report.checked_by_assistant_name)}<br>Date: ${formatDate(report.checked_by_assistant_at)}</div>`;
+        }
+
+        const html = `
+            <div class="report-detail-container">
+                <div class="alert alert-info">
+                    <strong>Report #${report.id}</strong> | ${typeName} ${typeIcon}<br>
+                    Submitted: ${formatDate(report.created_at)} | Status: ${isAcknowledged ? 'Acknowledged' : 'Pending Review'}
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Entity:</div>
+                    <div class="col-8">${escapeHtml(report.entity_name || report.entity_type)} (${report.entity_type})</div>
+                </div>
+                ${report.reference_number ? `<div class="row mb-2"><div class="col-4 fw-bold">Reference Number:</div><div class="col-8">${escapeHtml(report.reference_number)}</div></div>` : ''}
+                ${report.reference_date ? `<div class="row mb-2"><div class="col-4 fw-bold">Reference Date:</div><div class="col-8">${escapeHtml(report.reference_date)}</div></div>` : ''}
+                ${report.account_number ? `<div class="row mb-2"><div class="col-4 fw-bold">Account Number:</div><div class="col-8">${escapeHtml(report.account_number)}</div></div>` : ''}
+                ${report.meter_number ? `<div class="row mb-2"><div class="col-4 fw-bold">Meter Number:</div><div class="col-8">${escapeHtml(report.meter_number)}</div></div>` : ''}
+                ${report.phone_number ? `<div class="row mb-2"><div class="col-4 fw-bold">Phone Number:</div><div class="col-8">${escapeHtml(report.phone_number)}</div></div>` : ''}
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Problem Type:</div>
+                    <div class="col-8">${escapeHtml(report.problem_type)}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Priority:</div>
+                    <div class="col-8"><span class="status-badge ${priorityClass}">${report.priority.toUpperCase()}</span> ${report.priority_with_tender ? '<span class="badge bg-danger ms-2">TENDER</span>' : ''}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Complaint Details:</div>
+                    <div class="col-8">${escapeHtml(report.complaint_details)}</div>
+                </div>
+                ${report.action_taken ? `<div class="row mb-2"><div class="col-4 fw-bold">Action Taken:</div><div class="col-8">${escapeHtml(report.action_taken)}</div></div>` : ''}
+                ${report.technician_notes ? `<div class="row mb-2"><div class="col-4 fw-bold">Technician Notes:</div><div class="col-8">${escapeHtml(report.technician_notes)}</div></div>` : ''}
+                <div class="row mb-2">
+                    <div class="col-4 fw-bold">Submitted By:</div>
+                    <div class="col-8">${escapeHtml(techName)}</div>
+                </div>
+                ${assistantCheckHtml}
+                ${acknowledgmentHtml}
+                ${imagesHtml}
+                ${commentsHtml}
+                <div class="mt-3"><button class="btn btn-sm btn-secondary" onclick="showAddCommentModal()"><i class="bi bi-chat-dots"></i> Add Comment</button></div>
+            </div>
+        `;
+        document.getElementById('modalBody').innerHTML = html;
+    }
+
+    function showAddCommentModal() {
+        document.getElementById('newComment').value = '';
+        new bootstrap.Modal(document.getElementById('commentModal')).show();
+    }
+
+    async function submitComment() {
+        const comment = document.getElementById('newComment').value;
+        const userName = localStorage.getItem('userName') || (isTeamLeader ? 'Team Leader' : 'Technician');
+        if (!comment.trim()) return window.showToast('Enter a comment', 'error');
+        try {
+            let comments = currentReport.comments || [];
+            comments.push({ author: userName, text: comment, created_at: new Date().toISOString() });
+            const response = await fetch(`/api/technical-reports/${currentReportId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ comments: comments })
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.showToast('Comment added');
+                bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
+                openReportDetail(currentReportId);
+            }
+        } catch (error) {
+            window.showToast('Error', 'error');
+        }
+    }
+
+    function showAcknowledgeModal() {
+        if (!isTeamLeader) {
+            window.showToast('Only Team Leaders can acknowledge reports', 'error');
+            return;
+        }
+        document.getElementById('acknowledgeComment').value = '';
+        new bootstrap.Modal(document.getElementById('acknowledgeModal')).show();
+    }
+
+    async function submitAcknowledge() {
+        const comment = document.getElementById('acknowledgeComment').value;
+        const userId = localStorage.getItem('userId');
+        try {
+            const response = await fetch(`/api/technical-reports/${currentReportId}/acknowledge`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ team_leader_id: parseInt(userId), team_leader_notes: comment })
+            });
+            const data = await response.json();
+            if (data.success) {
+                window.showToast('Report acknowledged');
+                bootstrap.Modal.getInstance(document.getElementById('acknowledgeModal')).hide();
+                loadReports();
+                openReportDetail(currentReportId);
+            } else {
+                window.showToast(data.error || 'Failed to acknowledge', 'error');
+            }
+        } catch (error) {
+            window.showToast('Error', 'error');
+        }
+    }
+
+    function editReport() {
+        if (currentReportId) {
+            if (currentReport && currentReport.technician_id != currentTechnicianId) {
+                window.showToast('You can only edit your own reports', 'error');
+                return;
+            }
+            if (currentReport && currentReport.team_leader_acknowledged) {
+                window.showToast('This report has already been acknowledged and cannot be edited', 'error');
+                return;
+            }
+            window.location.href = `/new-report?id=${currentReportId}`;
+        } else {
+            window.showToast('No report selected', 'error');
+        }
+    }
+
+    async function deleteReport() {
+        if (!currentReportId) return;
+
+        if (currentReport && currentReport.technician_id != currentTechnicianId) {
+            window.showToast('You can only delete your own reports', 'error');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete this report? This action cannot be undone.')) return;
+        try {
+            const response = await fetch(`/api/technical-reports/${currentReportId}`, { method: 'DELETE' });
+            const data = await response.json();
+            if (data.success) {
+                window.showToast('Report deleted');
+                bootstrap.Modal.getInstance(document.getElementById('reportModal'))?.hide();
+                loadReports();
+            } else {
+                window.showToast(data.error || 'Cannot delete', 'error');
+            }
+        } catch (error) {
+            window.showToast('Error deleting', 'error');
+        }
+    }
+
+    function printReport(id) {
+        if (!id && currentReport) id = currentReport.id;
+        if (!id) { window.showToast('No report to print', 'error'); return; }
+
+        const printWindow = window.open('', '_blank', 'width=900,height=700');
+        const report = allReports.find(r => r.id === id);
+        if (!report) { window.showToast('Report not found', 'error'); return; }
+
+        fetch(`/api/technical-reports/${id}/track-print`, { method: 'POST' }).catch(e => console.log(e));
+
+        printWindow.document.write(generatePrintHTML(report));
+        printWindow.document.close();
+    }
+
+    function generatePrintHTML(report) {
+        const reportTypeIcon = '💧';
+        const reportTypeName = 'Water';
+        const currentDate = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        let complaintDetails = cleanText(report.complaint_details || '-');
+        let actionTaken = cleanText(report.action_taken || '');
+        let technicianNotes = cleanText(report.technician_notes || '');
+        let teamLeaderNotes = cleanText(report.team_leader_notes || '');
+        let accountNumber = cleanText(report.account_number || '');
+        let meterNumber = cleanText(report.meter_number || '');
+        let phoneNumber = cleanText(report.phone_number || '');
+        let referenceNumber = cleanText(report.reference_number || '');
+        let referenceType = cleanText(report.reference_type || '');
+        let problemType = cleanText(report.problem_type || '-');
+        let entityName = cleanText(report.entity_name || report.entity_type || '');
+        let technicianName = cleanText(getTechnicianName(report.technician_id));
+        let teamLeaderName = cleanText(report.team_leader_name || 'Team Leader');
+        let assistantName = cleanText(report.checked_by_assistant_name || '');
+        let referenceDate = cleanText(report.reference_date || '');
+
+        if (complaintDetails && complaintDetails.includes('\n')) {
+            complaintDetails = complaintDetails.split('\n').map(line => `• ${line.trim()}`).join('<br>');
+        }
+        if (actionTaken && actionTaken.includes('\n')) {
+            actionTaken = actionTaken.split('\n').map(line => `• ${line.trim()}`).join('<br>');
+        }
+
+        let imagesHtml = '';
+        if (report.images && report.images.length > 0) {
+            imagesHtml = '<div style="margin-top:20px;"><strong>Attached Images:</strong><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:10px;">';
+            report.images.forEach(img => {
+                imagesHtml += `<img src="${img}" style="max-width:180px; max-height:120px; border:1px solid #ccc; border-radius:4px;">`;
+            });
+            imagesHtml += '</div></div>';
+        }
+
+        let commentsHtml = '';
+        if (report.comments && report.comments.length > 0) {
+            commentsHtml = '<div style="margin-top:20px;"><strong>Comments History:</strong><div style="margin-top:10px;">';
+            report.comments.forEach(c => {
+                let commentText = cleanText(c.text);
+                commentsHtml += `<div style="border:1px solid #e0e0e0; padding:12px; margin-bottom:10px; border-radius:6px; background:#fafafa;"><strong>${escapeHtml(c.author)}</strong> <small style="color:#888;">${formatDate(c.created_at)}</small><p style="margin-top:8px;">${escapeHtml(commentText)}</p></div>`;
+            });
+            commentsHtml += '</div></div>';
+        }
+
+        let assistantCheckHtml = '';
+        if (report.checked_by_assistant) {
+            assistantCheckHtml = `<tr><th>Assistant Checked By</th><td>${escapeHtml(assistantName)} on ${formatDate(report.checked_by_assistant_at)}</td></tr>`;
+        }
+
+        return `<!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>${reportTypeName} Technical Report #${report.id}</title>
+        <style>
+            *{margin:0;padding:0;box-sizing:border-box}
+            body{font-family:'Times New Roman',Arial,serif;background:white;padding:0;margin:0;font-size:11pt;line-height:1.5}
+            @page{size:A4;margin:2.2cm 2.2cm}
+            .report-container{max-width:100%;margin:0 auto}
+            .header{text-align:center;margin-bottom:25px}
+            .header h2{font-size:12pt;font-weight:normal;margin:0}
+            .header h1{font-size:16pt;font-weight:bold;margin:8px 0;text-transform:uppercase}
+            .divider{border-top:2px solid #000;margin:15px 0 5px}
+            .sub-divider{border-top:1px solid #000;margin:5px 0}
+            .report-id{background:#f5f5f5;padding:10px 15px;margin-bottom:25px;display:flex;justify-content:space-between;flex-wrap:wrap;border:1px solid #ddd;border-radius:5px}
+            table{width:100%;border-collapse:collapse;margin:15px 0}
+            th,td{padding:10px 12px;border:1px solid #aaa;text-align:left;vertical-align:top}
+            th{background:#f0f0f0;width:30%;font-weight:bold}
+            .priority-high{color:#dc3545;font-weight:bold}
+            .priority-medium{color:#d4a000;font-weight:bold}
+            .priority-low{color:#28a745;font-weight:bold}
+            .bg-danger{background:#dc3545;color:white;padding:2px 8px;border-radius:4px;display:inline-block}
+            .signatures{display:flex;justify-content:space-between;margin-top:50px;margin-bottom:30px}
+            .signature-box{text-align:center;width:45%}
+            .signature-line{border-top:1px solid #000;margin-top:40px;padding-top:8px;width:100%}
+            .footer{text-align:center;margin-top:40px;font-size:9pt;color:#666;border-top:1px solid #ddd;padding-top:12px}
+            @media print{body{padding:0;margin:0}table{page-break-inside:avoid}}
+        </style>
+        </head>
+        <body>
+            <div class="report-container">
+                <div class="header">
+                    <h2>Unit Kemudahan Asas</h2>
+                    <h2>Department of Administration and Services</h2>
+                    <h1>Ministry of Education</h1>
+                    <div class="divider"></div><div class="sub-divider"></div>
+                    <h3 style="margin-top:12px;font-size:13pt;">Technical Report System - ${reportTypeName}</h3>
+                </div>
+
+                <div class="report-id">
+                    <div><strong>Report ID:</strong> #${report.id}</div>
+                    <div><strong>Date:</strong> ${formatDate(report.created_at)}</div>
+                    <div><strong>Type:</strong> ${reportTypeName} ${reportTypeIcon}</div>
+                    <div><strong>Status:</strong> ${report.team_leader_acknowledged ? 'Acknowledged' : 'Pending Review'}</div>
+                </div>
+
+                <table>
+                    <tr><th>Entity Type</th><td>${report.entity_type === 'school' ? 'School' : 'Department'} </td>
+                    <tr><th>Entity Name</th><td>${escapeHtml(entityName)}</td>
+                    ${referenceNumber ? `<tr><th>Reference Number</th><td>${escapeHtml(referenceNumber)}</td>` : ''}
+                    ${referenceDate ? `<tr><th>Reference Date</th><td>${escapeHtml(referenceDate)}</td>` : ''}
+                    ${accountNumber ? `<tr><th>Account Number</th><td>${escapeHtml(accountNumber)}</td>` : ''}
+                    ${meterNumber ? `<tr><th>Meter Number</th><td>${escapeHtml(meterNumber)}</td>` : ''}
+                    ${phoneNumber ? `<tr><th>Phone Number</th><td>${escapeHtml(phoneNumber)}</td>` : ''}
+                    <tr><th>Problem Type</th><td>${escapeHtml(problemType)}</td>
+                    <tr><th>Priority</th><td class="priority-${report.priority}">${report.priority.toUpperCase()} ${report.priority_with_tender ? '<span class="bg-danger">TENDER</span>' : ''}</td>
+                    <tr><th>Complaint Details</th><td style="white-space:pre-wrap;">${complaintDetails}</td>
+                    ${technicianNotes ? `<tr><th>Technician's Notes</th><td style="white-space:pre-wrap;">${escapeHtml(technicianNotes)}</td>` : ''}
+                    ${actionTaken && actionTaken !== '-' && actionTaken !== '' ? `<tr><th>Action Taken</th><td style="white-space:pre-wrap;">${actionTaken}</td>` : ''}
+                    <tr><th>Submitted By</th><td>${escapeHtml(technicianName)}</td>
+                    ${assistantCheckHtml}
+                    ${report.team_leader_acknowledged ? `<tr><th>Acknowledged By</th><td>${escapeHtml(teamLeaderName)} on ${formatDate(report.team_leader_acknowledged_at)}</td>` : ''}
+                    ${teamLeaderNotes ? `<tr><th>Team Leader Notes</th><td style="white-space:pre-wrap;">${escapeHtml(teamLeaderNotes)}</td>` : ''}
+                </table>
+
+                ${imagesHtml}
+                ${commentsHtml}
+
+                <div class="signatures">
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <div><strong>Technician's Signature</strong></div>
+                        <div>Name: ${escapeHtml(technicianName)}</div>
+                        <div>Date: ${formatDateOnly(new Date())}</div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-line"></div>
+                        <div><strong>Team Leader's Signature</strong></div>
+                        <div>Name: ${report.team_leader_acknowledged ? escapeHtml(teamLeaderName) : '_________________'}</div>
+                        <div>Date: ${report.team_leader_acknowledged ? formatDateOnly(report.team_leader_acknowledged_at) : '_________________'}</div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p>This is an official technical report from Unit Kemudahan Asas, Ministry of Education, Brunei Darussalam.</p>
+                    <p>Printed on: ${currentDate}</p>
+                </div>
+            </div>
+            <script>
+                window.onload = function() { window.print(); setTimeout(function() { window.close(); }, 1000); };
+            <\/script>
+        </body>
+        </html>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        checkUserRole();
+        loadTechnicians();
+        loadTechniciansForFilter().then(() => {
+            loadReports();
+        });
+    });
 </script>
 {% endblock %}
