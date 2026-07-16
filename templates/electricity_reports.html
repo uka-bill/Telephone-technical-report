@@ -877,6 +877,9 @@
             return;
         }
 
+        // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
+        const totalReports = reports.length;
+
         let tableHtml = `<div class="reports-table-wrapper">
             <table class="reports-table">
                 <thead>
@@ -896,7 +899,7 @@
                 <tbody>`;
 
         reports.forEach((report, index) => {
-            const rowNumber = index + 1;
+            const rowNumber = totalReports - index;
             const priorityClass = `priority-${report.priority}`;
             const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
             const isAcknowledged = report.team_leader_acknowledged;
