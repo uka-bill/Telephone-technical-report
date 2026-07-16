@@ -826,7 +826,7 @@
             }
             let options = '<option value="">-- Select School --</option>';
             schoolsList.forEach(s => {
-                const selected = selectedId == s.id ? 'selected' : '';
+                const selected = (parseInt(selectedId) === s.id) ? 'selected' : '';
                 options += `<option value="${s.id}" ${selected}>${escapeHtml(s.name)}</option>`;
             });
             entitySelect.innerHTML = options;
@@ -839,7 +839,7 @@
             let options = '<option value="">-- Select Department --</option>';
             departmentsList.forEach(d => {
                 const displayName = d.unit_name || d.name;
-                const selected = selectedId == d.id ? 'selected' : '';
+                const selected = (parseInt(selectedId) === d.id) ? 'selected' : '';
                 options += `<option value="${d.id}" ${selected}>${escapeHtml(displayName)}</option>`;
             });
             entitySelect.innerHTML = options;
@@ -1006,7 +1006,7 @@
             document.querySelector(`input[name="reportType"][value="${report.report_type}"]`).checked = true;
             updateAccountFields(report.report_type);
             
-            // --- FIX: Set entity type and wait for dropdown to populate ---
+            // --- FIX: Set entity type and force the dropdown to populate ---
             const entityTypeSelect = document.getElementById('entityType');
             entityTypeSelect.value = report.entity_type;
             entityTypeSelect.disabled = false;
@@ -1027,6 +1027,23 @@
             // Ensure entity dropdown is enabled
             const entityIdSelect = document.getElementById('entityId');
             entityIdSelect.disabled = false;
+            
+            // Double-check the selected value is set correctly (in case populate failed due to type mismatch)
+            let found = false;
+            for (let i = 0; i < entityIdSelect.options.length; i++) {
+                if (parseInt(entityIdSelect.options[i].value) === parseInt(report.entity_id)) {
+                    entityIdSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                console.warn(`Entity ID ${report.entity_id} not found in dropdown. The entity may have been deleted.`);
+                // Optionally add a fallback message
+                if (window.showToast) {
+                    window.showToast('Warning: The original school/department was not found in the list. Please re-select it.', 'warning');
+                }
+            }
             
             console.log('Entity dropdown populated with selection:', entityIdSelect.value);
             
@@ -1225,6 +1242,7 @@
     }
     init();
 
+    // Make functions globally accessible for inline onclick handlers
     window.addWaterAccountField = addWaterAccountField;
     window.addWaterMeterField = addWaterMeterField;
     window.addElectricityAccountField = addElectricityAccountField;
