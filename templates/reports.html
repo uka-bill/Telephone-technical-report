@@ -748,9 +748,11 @@
             return;
         }
 
-        // Using index for running number (newest = #1)
+        // 🔥 NEW: Oldest report = #1, newest report = highest number
+        // Since reports are sorted by created_at DESC (newest first),
+        // we use reverse index: rowNumber = reports.length - index
         tbody.innerHTML = reports.map((report, index) => {
-            const rowNumber = index + 1;
+            const rowNumber = reports.length - index;  // ← FIX: Oldest = #1, Newest = highest
             const statusBadge = getStatusBadge(report.status);
             const priorityBadge = getPriorityBadge(report.priority);
             const typeIcon = getTypeIcon(report.report_type);
