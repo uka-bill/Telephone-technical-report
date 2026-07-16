@@ -908,6 +908,9 @@
             return;
         }
 
+        // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
+        const totalReports = reports.length;
+
         container.innerHTML = `
             <table class="reports-table">
                 <thead>
@@ -924,7 +927,7 @@
                 </thead>
                 <tbody>
                     ${reports.map((report, index) => {
-                        const rowNumber = index + 1;
+                        const rowNumber = totalReports - index;
                         const priorityIcon = '🔴';
                         const isChecked = report.checked_by_assistant === true;
                         const techName = getTechnicianName(report.technician_id);
@@ -977,6 +980,9 @@
             return;
         }
 
+        // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
+        const totalReports = reports.length;
+
         container.innerHTML = `
             <table class="reports-table">
                 <thead>
@@ -993,7 +999,7 @@
                 </thead>
                 <tbody>
                     ${reports.map((report, index) => {
-                        const rowNumber = index + 1;
+                        const rowNumber = totalReports - index;
                         const priorityClass = report.priority === 'high' ? 'priority-high-cell' : (report.priority === 'medium' ? 'priority-medium-cell' : 'priority-low-cell');
                         const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
                         const priorityText = report.priority.toUpperCase();
