@@ -912,7 +912,7 @@
             <table class="reports-table">
                 <thead>
                     <tr>
-                        <th class="col-id">ID</th>
+                        <th class="col-id">#</th>
                         <th class="col-entity">Entity</th>
                         <th class="col-problem">Problem Type</th>
                         <th class="col-priority">Priority</th>
@@ -923,14 +923,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    ${reports.map(report => {
+                    ${reports.map((report, index) => {
+                        const rowNumber = index + 1;
                         const priorityIcon = '🔴';
                         const isChecked = report.checked_by_assistant === true;
                         const techName = getTechnicianName(report.technician_id);
 
                         return `
-                            <tr style="background: linear-gradient(135deg, #fff3cd 0%, #ffe0b2 100%);">
-                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
+                            <tr style="background: linear-gradient(135deg, #fff3cd 0%, #ffe0b2 100%);" data-id="${report.id}">
+                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
                                 <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.entity_name || report.entity_type)}</td>
                                 <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.problem_type || '-')}</td>
                                 <td class="col-priority priority-high-cell" onclick="viewReportDetail(${report.id})"><span class="priority-icon">${priorityIcon}</span> HIGH</td>
@@ -980,7 +981,7 @@
             <table class="reports-table">
                 <thead>
                     <tr>
-                        <th class="col-id">ID</th>
+                        <th class="col-id">#</th>
                         <th class="col-entity">Entity</th>
                         <th class="col-problem">Problem Type</th>
                         <th class="col-priority">Priority</th>
@@ -991,7 +992,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    ${reports.map(report => {
+                    ${reports.map((report, index) => {
+                        const rowNumber = index + 1;
                         const priorityClass = report.priority === 'high' ? 'priority-high-cell' : (report.priority === 'medium' ? 'priority-medium-cell' : 'priority-low-cell');
                         const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
                         const priorityText = report.priority.toUpperCase();
@@ -999,8 +1001,8 @@
                         const techName = getTechnicianName(report.technician_id);
 
                         return `
-                            <tr>
-                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
+                            <tr data-id="${report.id}">
+                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
                                 <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.entity_name || report.entity_type)}</td>
                                 <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.problem_type || '-')}</td>
                                 <td class="col-priority ${priorityClass}" onclick="viewReportDetail(${report.id})"><span class="priority-icon">${priorityIcon}</span> ${priorityText}</td>
