@@ -892,7 +892,7 @@
             <table class="reports-table">
                 <thead>
                     <tr>
-                        <th class="col-id">ID</th>
+                        <th class="col-id">#</th>
                         <th class="col-entity">Entity Name</th>
                         <th class="col-ref-number">Reference #</th>
                         <th class="col-ref-date">Ref Date</th>
@@ -906,7 +906,8 @@
                 </thead>
                 <tbody>`;
 
-        reports.forEach(report => {
+        reports.forEach((report, index) => {
+            const rowNumber = index + 1;
             const priorityClass = `priority-${report.priority}`;
             const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
             const isAcknowledged = report.team_leader_acknowledged;
@@ -915,8 +916,8 @@
             const techName = getTechnicianName(report.technician_id);
 
             tableHtml += `
-                <tr onclick="openReportDetail(${report.id})">
-                    <td class="col-id"><span class="report-id-link">#${report.id}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
+                <tr onclick="openReportDetail(${report.id})" data-id="${report.id}">
+                    <td class="col-id"><span class="report-id-link">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i></span>' : ''}</td>
                     <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}">${escapeHtml(report.entity_name || report.entity_type)}</td>
                     <td class="col-ref-number reference-number-cell" title="${escapeHtml(report.reference_number || '-')}">${escapeHtml(report.reference_number || '-')}</td>
                     <td class="col-ref-date reference-date-cell" title="${escapeHtml(report.reference_date || '-')}">${escapeHtml(report.reference_date || '-')}</td>
