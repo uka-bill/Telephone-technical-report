@@ -748,7 +748,9 @@
             return;
         }
 
-        tbody.innerHTML = reports.map((report) => {
+        // Using index for running number (newest = #1)
+        tbody.innerHTML = reports.map((report, index) => {
+            const rowNumber = index + 1;
             const statusBadge = getStatusBadge(report.status);
             const priorityBadge = getPriorityBadge(report.priority);
             const typeIcon = getTypeIcon(report.report_type);
@@ -764,8 +766,8 @@
             );
 
             return `
-                <tr>
-                    <td class="col-id text-center"><strong>#${report.id}</strong></td>
+                <tr data-id="${report.id}">
+                    <td class="col-id text-center"><strong>${rowNumber}</strong></td>
                     <td class="col-type"><span class="type-icon">${typeIcon}</span></td>
                     <td class="col-location">
                         <span class="text-truncate-custom" title="${escapeHtml(locationName)}">${truncateText(locationName, 20)}</span>
@@ -1125,7 +1127,6 @@
     document.addEventListener('DOMContentLoaded', function() {
         loadTechnicians();
         loadReports();
-        // Auto-refresh removed – use the Refresh button or Ctrl+R
     });
 </script>
 
