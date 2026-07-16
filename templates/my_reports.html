@@ -919,6 +919,9 @@
         const buildTable = (reportList, typeName, typeIcon) => {
             if (reportList.length === 0) return '';
 
+            // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
+            const totalReports = reportList.length;
+
             let tableHtml = `<div class="category-container">
                 <div class="section-header" onclick="toggleSection('${typeName}-body', this)">
                     <div class="section-title">
@@ -948,7 +951,7 @@
                         <tbody>`;
 
             reportList.forEach((report, index) => {
-                const rowNumber = index + 1;
+                const rowNumber = totalReports - index;
                 const priorityClass = `priority-${report.priority}`;
                 const priorityIcon = report.priority === 'high' ? '🔴' : (report.priority === 'medium' ? '🟡' : '🟢');
                 const isAcknowledged = report.team_leader_acknowledged;
