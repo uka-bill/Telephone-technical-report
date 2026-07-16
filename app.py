@@ -634,29 +634,29 @@ def update_technical_report(report_id):
         app.logger.error(f"Error updating technical report: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/technical-reports/<int:report_id>/acknowledge', methods=['POST'])
-def acknowledge_report(report_id):
+# ============ NEW DELETE ENDPOINT FOR TECHNICAL REPORTS ============
+@app.route('/api/technical-reports/<int:report_id>', methods=['DELETE'])
+def delete_technical_report(report_id):
     try:
         if not supabase:
             return jsonify({'error': 'Database not connected'}), 500
-        data = request.get_json()
-        team_leader_id = data.get('team_leader_id')
-        auth_response = supabase.table("technicians").select("is_authorized").eq("id", team_leader_id).execute()
-        if not auth_response.data or not auth_response.data[0].get('is_authorized', False):
-            return jsonify({'success': False, 'error': 'You are not authorized to acknowledge reports.'}), 403
-        update_data = {
-            "team_leader_acknowledged": True,
-            "team_leader_acknowledged_at": get_brunei_time_iso(),
-            "team_leader_id": team_leader_id,
-            "team_leader_notes": data.get('team_leader_notes', ''),
-            "updated_at": get_brunei_time_iso()
-        }
-        response = supabase.table("technical_reports").update(update_data).eq("id", report_id).execute()
+        
+        # Check if the report exists and is not already acknowledged
+        report = supabase.table("technical_reports").select("id, technician_id, team_leader_acknowledged").eq("id", report_id).execute()
+        if not report.data:
+            return jsonify({'success': False, 'error': 'Report not found'}), 404
+        
+        if report.data[0].get('team_leader_acknowledged', False):
+            return jsonify({'success': False, 'error': 'Cannot delete an acknowledged report'}), 400
+        
+        # Delete the report
+        response = supabase.table("technical_reports").delete().eq("id", report_id).execute()
         if response.data:
-            return jsonify({'success': True, 'message': 'Report acknowledged successfully'})
-        return jsonify({'success': False, 'error': 'Report not found'}), 404
+            app.logger.info(f"Report {report_id} deleted")
+            return jsonify({'success': True})
+        return jsonify({'success': False, 'error': 'Failed to delete report'}), 500
     except Exception as e:
-        app.logger.error(f"Error acknowledging report: {e}")
+        app.logger.error(f"Error deleting report: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ============ ASSISTANT TEAM LEADER CHECK ENDPOINT ============
