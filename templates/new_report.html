@@ -790,6 +790,7 @@
         document.getElementById('telephoneFields').style.display = reportType === 'telephone' ? 'block' : 'none';
     }
 
+    // ============ FIXED: SCHOOL & DEPARTMENT LOADING ============
     async function loadSchools() {
         try {
             const response = await fetch('/api/schools');
@@ -806,18 +807,23 @@
         } catch { return []; }
     }
 
+    // ============ FIXED: Populate Entity Dropdown ============
     async function populateEntityDropdown(entityType, selectedId = null) {
         const entitySelect = document.getElementById('entityId');
         if (entityType === 'school') {
-            const schools = await loadSchools();
+            if (schoolsList.length === 0) {
+                await loadSchools();
+            }
             let options = '<option value="">Select School</option>';
-            options += schools.map(s => `<option value="${s.id}" ${selectedId == s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+            options += schoolsList.map(s => `<option value="${s.id}" ${selectedId == s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
             entitySelect.innerHTML = options;
             entitySelect.disabled = false;
         } else if (entityType === 'department') {
-            const departments = await loadDepartments();
+            if (departmentsList.length === 0) {
+                await loadDepartments();
+            }
             let options = '<option value="">Select Department</option>';
-            options += departments.map(d => {
+            options += departmentsList.map(d => {
                 const displayName = d.unit_name || d.name;
                 return `<option value="${d.id}" ${selectedId == d.id ? 'selected' : ''}>${escapeHtml(displayName)}</option>`;
             }).join('');
@@ -940,7 +946,7 @@
         }
     }
 
-    // ============ LOAD EXISTING REPORT FOR EDIT - FIXED TO ALLOW ENTITY CHANGE ============
+    // ============ FIXED: Load Report for Edit ============
     async function loadReportForEdit(id) {
         try {
             console.log('Loading report for edit:', id);
@@ -973,14 +979,19 @@
             document.querySelector(`input[name="reportType"][value="${report.report_type}"]`).checked = true;
             updateAccountFields(report.report_type);
             
-            // CRITICAL FIX: Set entity type and enable dropdown for editing
+            // --- FIX: Set entity type and wait for dropdown to populate ---
             const entityTypeSelect = document.getElementById('entityType');
             entityTypeSelect.value = report.entity_type;
-            
-            // Enable entity type dropdown for editing (so technician can change it)
             entityTypeSelect.disabled = false;
             
-            // Load the entities and select the correct one
+            // Pre-load schools and departments if not already loaded
+            if (report.entity_type === 'school' && schoolsList.length === 0) {
+                await loadSchools();
+            } else if (report.entity_type === 'department' && departmentsList.length === 0) {
+                await loadDepartments();
+            }
+            
+            // Populate the dropdown and select the correct entity
             await populateEntityDropdown(report.entity_type, report.entity_id);
             
             // Ensure entity dropdown is enabled
@@ -1170,10 +1181,10 @@
     async function init() {
         setReportDateTime();
         await getCurrentTechnician();
+        // Pre-load schools and departments once
+        await Promise.all([loadSchools(), loadDepartments()]);
         updateAccountFields('water');
         document.querySelector('.priority-option[data-priority="medium"]').classList.add('selected');
-        await loadSchools();
-        await loadDepartments();
         
         if (isEditMode && editReportId) {
             await loadReportForEdit(editReportId);
