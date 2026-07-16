@@ -790,45 +790,61 @@
         document.getElementById('telephoneFields').style.display = reportType === 'telephone' ? 'block' : 'none';
     }
 
-    // ============ FIXED: SCHOOL & DEPARTMENT LOADING ============
+    // ============ SCHOOL & DEPARTMENT LOADING ============
     async function loadSchools() {
         try {
             const response = await fetch('/api/schools');
             schoolsList = await response.json();
+            console.log('Schools loaded:', schoolsList.length);
             return schoolsList;
-        } catch { return []; }
+        } catch (error) {
+            console.error('Error loading schools:', error);
+            return [];
+        }
     }
 
     async function loadDepartments() {
         try {
             const response = await fetch('/api/departments');
             departmentsList = await response.json();
+            console.log('Departments loaded:', departmentsList.length);
             return departmentsList;
-        } catch { return []; }
+        } catch (error) {
+            console.error('Error loading departments:', error);
+            return [];
+        }
     }
 
-    // ============ FIXED: Populate Entity Dropdown ============
+    // ============ Populate Entity Dropdown ============
     async function populateEntityDropdown(entityType, selectedId = null) {
         const entitySelect = document.getElementById('entityId');
+        console.log('Populating dropdown for:', entityType, 'selected:', selectedId);
+        
         if (entityType === 'school') {
             if (schoolsList.length === 0) {
                 await loadSchools();
             }
-            let options = '<option value="">Select School</option>';
-            options += schoolsList.map(s => `<option value="${s.id}" ${selectedId == s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+            let options = '<option value="">-- Select School --</option>';
+            schoolsList.forEach(s => {
+                const selected = selectedId == s.id ? 'selected' : '';
+                options += `<option value="${s.id}" ${selected}>${escapeHtml(s.name)}</option>`;
+            });
             entitySelect.innerHTML = options;
             entitySelect.disabled = false;
+            console.log('Schools dropdown populated with', schoolsList.length, 'schools');
         } else if (entityType === 'department') {
             if (departmentsList.length === 0) {
                 await loadDepartments();
             }
-            let options = '<option value="">Select Department</option>';
-            options += departmentsList.map(d => {
+            let options = '<option value="">-- Select Department --</option>';
+            departmentsList.forEach(d => {
                 const displayName = d.unit_name || d.name;
-                return `<option value="${d.id}" ${selectedId == d.id ? 'selected' : ''}>${escapeHtml(displayName)}</option>`;
-            }).join('');
+                const selected = selectedId == d.id ? 'selected' : '';
+                options += `<option value="${d.id}" ${selected}>${escapeHtml(displayName)}</option>`;
+            });
             entitySelect.innerHTML = options;
             entitySelect.disabled = false;
+            console.log('Departments dropdown populated with', departmentsList.length, 'departments');
         } else {
             entitySelect.innerHTML = '<option value="">Select Entity Type First</option>';
             entitySelect.disabled = true;
@@ -836,7 +852,18 @@
     }
 
     document.getElementById('entityType').addEventListener('change', async function() {
-        await populateEntityDropdown(this.value);
+        console.log('Entity type changed to:', this.value);
+        // When entity type changes, load the corresponding list
+        if (this.value === 'school') {
+            if (schoolsList.length === 0) await loadSchools();
+            await populateEntityDropdown('school');
+        } else if (this.value === 'department') {
+            if (departmentsList.length === 0) await loadDepartments();
+            await populateEntityDropdown('department');
+        } else {
+            document.getElementById('entityId').innerHTML = '<option value="">Select Entity Type First</option>';
+            document.getElementById('entityId').disabled = true;
+        }
     });
 
     document.querySelectorAll('input[name="reportType"]').forEach(radio => {
@@ -946,7 +973,7 @@
         }
     }
 
-    // ============ FIXED: Load Report for Edit ============
+    // ============ Load Report for Edit ============
     async function loadReportForEdit(id) {
         try {
             console.log('Loading report for edit:', id);
@@ -991,12 +1018,17 @@
                 await loadDepartments();
             }
             
+            console.log('Schools list length:', schoolsList.length);
+            console.log('Departments list length:', departmentsList.length);
+            
             // Populate the dropdown and select the correct entity
             await populateEntityDropdown(report.entity_type, report.entity_id);
             
             // Ensure entity dropdown is enabled
             const entityIdSelect = document.getElementById('entityId');
             entityIdSelect.disabled = false;
+            
+            console.log('Entity dropdown populated with selection:', entityIdSelect.value);
             
             // Set other form fields
             document.getElementById('problemType').value = report.problem_type || '';
@@ -1183,6 +1215,7 @@
         await getCurrentTechnician();
         // Pre-load schools and departments once
         await Promise.all([loadSchools(), loadDepartments()]);
+        console.log('Initial load complete - Schools:', schoolsList.length, 'Departments:', departmentsList.length);
         updateAccountFields('water');
         document.querySelector('.priority-option[data-priority="medium"]').classList.add('selected');
         
