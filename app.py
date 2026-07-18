@@ -609,23 +609,29 @@ def create_technical_report():
         app.logger.error(f"Error creating technical report: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ UPDATED PUT ENDPOINT – NOW ALLOWS ENTITY TYPE AND ENTITY ID ============
 @app.route('/api/technical-reports/<int:report_id>', methods=['PUT'])
 def update_technical_report(report_id):
     try:
         if not supabase:
             return jsonify({'error': 'Database not connected'}), 500
         data = request.get_json()
-        # Added 'report_type' and 'entity_type' to allowed fields
-        allowed_fields = ['report_type', 'entity_type', 'problem_type', 'complaint_details', 'priority', 'priority_with_tender', 'status',
-                         'technician_notes', 'action_taken', 'images', 'account_number', 'meter_number',
-                         'phone_number', 'number_of_lines', 'reference_type', 'reference_number', 'reference_date']
+        # Allowed fields – now includes 'entity_type' and 'entity_id'
+        allowed_fields = ['report_type', 'entity_type', 'entity_id', 'problem_type', 'complaint_details',
+                         'priority', 'priority_with_tender', 'status', 'technician_notes', 'action_taken',
+                         'images', 'account_number', 'meter_number', 'phone_number', 'number_of_lines',
+                         'reference_type', 'reference_number', 'reference_date']
         update_data = {}
         for field in allowed_fields:
-            if field in data:
-                update_data[field] = data[field]
-        update_data['updated_at'] = get_brunei_time_iso()
+            if field in data and data[field] is not None:
+                # Ensure entity_id is stored as integer
+                if field == 'entity_id':
+                    update_data[field] = int(data[field])
+                else:
+                    update_data[field] = data[field]
         if not update_data:
             return jsonify({'success': False, 'error': 'No data to update'}), 400
+        update_data['updated_at'] = get_brunei_time_iso()
         response = supabase.table("technical_reports").update(update_data).eq("id", report_id).execute()
         if response.data:
             return jsonify({'success': True, 'message': 'Report updated successfully', 'report': response.data[0]})
@@ -634,7 +640,7 @@ def update_technical_report(report_id):
         app.logger.error(f"Error updating technical report: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ============ NEW DELETE ENDPOINT FOR TECHNICAL REPORTS ============
+# ============ DELETE ENDPOINT FOR TECHNICAL REPORTS ============
 @app.route('/api/technical-reports/<int:report_id>', methods=['DELETE'])
 def delete_technical_report(report_id):
     try:
