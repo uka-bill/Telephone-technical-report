@@ -523,30 +523,6 @@
         transform: translateY(-1px);
     }
 
-    /* Inline comment box */
-    .inline-comment-box {
-        margin-top: 20px;
-        padding: 15px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 12px;
-        border: 1px solid #e0e0e0;
-    }
-    .inline-comment-box textarea {
-        width: 100%;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        padding: 10px;
-        font-size: 14px;
-        resize: vertical;
-        min-height: 80px;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .inline-comment-box textarea:focus {
-        border-color: var(--primary-color);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
-    }
-
     /* Responsive */
     @media (max-width: 768px) {
         .col-id { width: 35px; min-width: 35px; }
@@ -678,7 +654,7 @@
     </div>
 </div>
 
-<!-- View Report Modal - with inline comment box -->
+<!-- View Report Modal -->
 <div class="modal fade" id="viewReportModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -1178,7 +1154,7 @@
         }
     }
 
-    // ============ DISPLAY REPORT WITH INLINE COMMENT BOX ============
+    // ============ DISPLAY REPORT (NO INLINE COMMENT BOX) ============
     function displayReportInModal(report) {
         const reportTypeIcon = report.report_type === 'water' ? '💧' : report.report_type === 'electricity' ? '⚡' : '📞';
         const reportTypeName = report.report_type === 'water' ? 'Water' : report.report_type === 'electricity' ? 'Electricity' : 'Telephone';
@@ -1204,23 +1180,6 @@
         let acknowledgmentHtml = '';
         if (isAcknowledged) {
             acknowledgmentHtml = `<div class="alert alert-success mt-2" style="background: linear-gradient(135deg, #d4edda 0%, #c8e6c9 100%); border: none; border-left: 4px solid #28a745;"><i class="bi bi-check-circle"></i> <strong>Acknowledged by Team Leader</strong><br>By: ${escapeHtml(report.team_leader_name)}<br>Date: ${formatDate(report.team_leader_acknowledged_at)}<br>Comments: ${escapeHtml(report.team_leader_notes || 'No notes')}</div>`;
-        }
-
-        // Inline comment box - only show for pending reports
-        let inlineCommentHtml = '';
-        if (!isAcknowledged) {
-            inlineCommentHtml = `
-                <div class="inline-comment-box mt-3">
-                    <label class="fw-bold mb-2"><i class="bi bi-chat-dots"></i> Add Comment</label>
-                    <textarea id="inlineCommentText" rows="3" placeholder="Write your comment here..."></textarea>
-                    <div class="mt-2">
-                        <button class="btn-primary-custom btn-sm" onclick="submitInlineComment()">
-                            <i class="bi bi-send"></i> Post Comment
-                        </button>
-                    </div>
-                    <div id="inlineCommentStatus" class="mt-2" style="display: none;"></div>
-                </div>
-            `;
         }
 
         const html = `
@@ -1259,58 +1218,9 @@
                 ${acknowledgmentHtml}
                 ${imagesHtml}
                 ${commentsHtml}
-                ${inlineCommentHtml}
             </div>
         `;
         document.getElementById('viewReportContent').innerHTML = html;
-    }
-
-    // ============ SUBMIT INLINE COMMENT ============
-    async function submitInlineComment() {
-        const comment = document.getElementById('inlineCommentText').value.trim();
-        if (!comment) {
-            const statusDiv = document.getElementById('inlineCommentStatus');
-            statusDiv.style.display = 'block';
-            statusDiv.className = 'alert alert-warning';
-            statusDiv.innerHTML = 'Please enter a comment.';
-            return;
-        }
-
-        const statusDiv = document.getElementById('inlineCommentStatus');
-        statusDiv.style.display = 'block';
-        statusDiv.className = 'alert alert-info';
-        statusDiv.innerHTML = 'Submitting comment...';
-
-        const userName = localStorage.getItem('userName') || (isAuthorizedUser ? 'Team Leader' : 'Assistant');
-
-        try {
-            let comments = currentReport.comments || [];
-            comments.push({ author: userName, text: comment, created_at: new Date().toISOString() });
-
-            const response = await fetch(`/api/technical-reports/${currentReportId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ comments: comments })
-            });
-
-            const data = await response.json();
-            if (data.success) {
-                statusDiv.className = 'alert alert-success';
-                statusDiv.innerHTML = '✅ Comment added successfully!';
-                document.getElementById('inlineCommentText').value = '';
-                // Refresh the report detail view
-                setTimeout(() => {
-                    viewReportDetail(currentReportId);
-                }, 800);
-            } else {
-                statusDiv.className = 'alert alert-danger';
-                statusDiv.innerHTML = '❌ Failed to add comment: ' + (data.error || 'Unknown error');
-            }
-        } catch (error) {
-            console.error('Error adding comment:', error);
-            statusDiv.className = 'alert alert-danger';
-            statusDiv.innerHTML = '❌ Error adding comment: ' + error.message;
-        }
     }
 
     function printCurrentReport() {
