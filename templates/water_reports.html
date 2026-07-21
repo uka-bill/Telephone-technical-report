@@ -160,10 +160,10 @@
         text-decoration: underline;
     }
     .col-id { width: 45px; min-width: 45px; max-width: 45px; }
-    .col-entity { width: auto; min-width: 120px; }
+    .col-entity { width: 220px; min-width: 180px; max-width: 300px; }
     .col-ref-number { width: 80px; min-width: 70px; max-width: 100px; }
     .col-ref-date { width: 70px; min-width: 60px; max-width: 85px; }
-    .col-problem { width: auto; min-width: 120px; }
+    .col-problem { width: 150px; min-width: 120px; max-width: 220px; }
     .col-priority { width: 60px; min-width: 55px; max-width: 70px; }
     .col-submitted { width: 120px; min-width: 100px; max-width: 150px; }
     .col-status { width: 85px; min-width: 75px; max-width: 110px; }
@@ -425,11 +425,29 @@
         color: #999;
         margin-left: 10px;
     }
+    .modal-header-custom {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-header-custom .btn-close {
+        filter: brightness(0) invert(1);
+        margin-left: auto;
+    }
+    .modal-header-custom .modal-title {
+        flex: 1;
+    }
 
     @media (max-width: 768px) {
         .col-id { width: 35px; min-width: 35px; }
+        .col-entity { width: 140px; min-width: 100px; }
         .col-ref-number { width: 60px; min-width: 50px; }
         .col-ref-date { width: 50px; min-width: 45px; }
+        .col-problem { min-width: 80px; }
         .col-priority { width: 45px; min-width: 40px; }
         .col-submitted { width: 80px; min-width: 60px; }
         .col-status { width: 65px; min-width: 55px; }
@@ -586,7 +604,7 @@
 <div class="modal fade" id="reportModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header py-2">
+            <div class="modal-header-custom">
                 <h5 class="modal-title">Water Report Details</h5>
                 <button type="button" class="btn-expand" id="expandModalBtn" onclick="toggleModalSize()">
                     <i class="bi bi-arrows-fullscreen"></i>
@@ -609,7 +627,7 @@
 <div class="modal fade" id="acknowledgeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header py-2">
+            <div class="modal-header-custom">
                 <h5 class="modal-title"><i class="bi bi-check2-square"></i> Acknowledge Report</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -628,7 +646,7 @@
 <div class="modal fade" id="commentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header py-2">
+            <div class="modal-header-custom">
                 <h5 class="modal-title">Add Comment</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -677,14 +695,14 @@
     function formatDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        date.setHours(date.getHours() + 8);
+        // Time is already stored in Brunei Time (UTC+8), so no offset needed
         return date.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     function formatDateOnly(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        date.setHours(date.getHours() + 8);
+        // Time is already stored in Brunei Time (UTC+8), so no offset needed
         return date.toLocaleDateString('en-GB');
     }
 
@@ -888,7 +906,6 @@
             return;
         }
 
-        // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
         const totalReports = reports.length;
 
         let tableHtml = `<div class="reports-table-wrapper">
