@@ -510,19 +510,6 @@
     .btn-secondary-custom:hover {
         transform: translateY(-1px);
     }
-    .btn-info-custom {
-        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-        border: none;
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-size: 11px;
-        transition: all 0.2s;
-        color: white;
-    }
-    .btn-info-custom:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
-    }
     .btn-print {
         background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
         border: none;
@@ -534,6 +521,30 @@
     }
     .btn-print:hover {
         transform: translateY(-1px);
+    }
+
+    /* Inline comment box */
+    .inline-comment-box {
+        margin-top: 20px;
+        padding: 15px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        border: 1px solid #e0e0e0;
+    }
+    .inline-comment-box textarea {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 80px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .inline-comment-box textarea:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
     }
 
     /* Responsive */
@@ -667,29 +678,7 @@
     </div>
 </div>
 
-<!-- Comment Modal -->
-<div class="modal fade" id="commentModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header-custom">
-                <h5 class="modal-title"><i class="bi bi-chat-dots"></i> Add Comment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Your Comment</label>
-                    <textarea class="form-control" id="newCommentText" rows="4" placeholder="Enter your comment..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn-primary-custom" onclick="submitComment()">Add Comment</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- View Report Modal -->
+<!-- View Report Modal - with inline comment box -->
 <div class="modal fade" id="viewReportModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -1132,11 +1121,8 @@
             const data = await response.json();
             if (data.success) {
                 window.showToast('Report acknowledged successfully');
-                // Hide the modal first, then refresh after it's fully closed
                 const modal = bootstrap.Modal.getInstance(document.getElementById('acknowledgeModal'));
                 modal.hide();
-                
-                // Wait for modal to fully close before refreshing
                 document.getElementById('acknowledgeModal').addEventListener('hidden.bs.modal', function onHidden() {
                     document.getElementById('acknowledgeModal').removeEventListener('hidden.bs.modal', onHidden);
                     loadTeamLeaderData();
@@ -1192,10 +1178,13 @@
         }
     }
 
+    // ============ DISPLAY REPORT WITH INLINE COMMENT BOX ============
     function displayReportInModal(report) {
         const reportTypeIcon = report.report_type === 'water' ? '💧' : report.report_type === 'electricity' ? '⚡' : '📞';
         const reportTypeName = report.report_type === 'water' ? 'Water' : report.report_type === 'electricity' ? 'Electricity' : 'Telephone';
         const techName = getTechnicianName(report.technician_id);
+        const isAcknowledged = report.team_leader_acknowledged;
+        const isChecked = report.checked_by_assistant === true;
 
         let imagesHtml = '';
         if (report.images && report.images.length > 0) {
@@ -1208,20 +1197,37 @@
         }
 
         let assistantCheckHtml = '';
-        if (report.checked_by_assistant) {
+        if (isChecked) {
             assistantCheckHtml = `<div class="alert alert-info mt-2" style="background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); border: none; border-left: 4px solid #17a2b8;"><i class="bi bi-eye"></i> <strong>Checked by Assistant Team Leader</strong><br>By: ${escapeHtml(report.checked_by_assistant_name)}<br>Date: ${formatDate(report.checked_by_assistant_at)}</div>`;
         }
 
         let acknowledgmentHtml = '';
-        if (report.team_leader_acknowledged) {
+        if (isAcknowledged) {
             acknowledgmentHtml = `<div class="alert alert-success mt-2" style="background: linear-gradient(135deg, #d4edda 0%, #c8e6c9 100%); border: none; border-left: 4px solid #28a745;"><i class="bi bi-check-circle"></i> <strong>Acknowledged by Team Leader</strong><br>By: ${escapeHtml(report.team_leader_name)}<br>Date: ${formatDate(report.team_leader_acknowledged_at)}<br>Comments: ${escapeHtml(report.team_leader_notes || 'No notes')}</div>`;
+        }
+
+        // Inline comment box - only show for pending reports
+        let inlineCommentHtml = '';
+        if (!isAcknowledged) {
+            inlineCommentHtml = `
+                <div class="inline-comment-box mt-3">
+                    <label class="fw-bold mb-2"><i class="bi bi-chat-dots"></i> Add Comment</label>
+                    <textarea id="inlineCommentText" rows="3" placeholder="Write your comment here..."></textarea>
+                    <div class="mt-2">
+                        <button class="btn-primary-custom btn-sm" onclick="submitInlineComment()">
+                            <i class="bi bi-send"></i> Post Comment
+                        </button>
+                    </div>
+                    <div id="inlineCommentStatus" class="mt-2" style="display: none;"></div>
+                </div>
+            `;
         }
 
         const html = `
             <div class="report-detail-container">
                 <div class="alert alert-info" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 100%); border: none; border-left: 4px solid #17a2b8;">
                     <strong>Report #${report.id}</strong> | ${reportTypeName} ${reportTypeIcon}<br>
-                    Submitted: ${formatDate(report.created_at)} | Status: ${report.team_leader_acknowledged ? 'Acknowledged' : 'Pending Review'}
+                    Submitted: ${formatDate(report.created_at)} | Status: ${isAcknowledged ? 'Acknowledged' : 'Pending Review'}
                 </div>
                 <div class="row mb-2">
                     <div class="col-4 fw-bold">Entity:</div>
@@ -1253,26 +1259,27 @@
                 ${acknowledgmentHtml}
                 ${imagesHtml}
                 ${commentsHtml}
-                <div class="mt-3">
-                    <button class="btn-secondary-custom" onclick="showAddCommentModal()"><i class="bi bi-chat-dots"></i> Add Comment</button>
-                </div>
+                ${inlineCommentHtml}
             </div>
         `;
         document.getElementById('viewReportContent').innerHTML = html;
     }
 
-    // ============ FIXED: Comment Modal with proper closing ============
-    function showAddCommentModal() {
-        document.getElementById('newCommentText').value = '';
-        new bootstrap.Modal(document.getElementById('commentModal')).show();
-    }
-
-    async function submitComment() {
-        const comment = document.getElementById('newCommentText').value.trim();
+    // ============ SUBMIT INLINE COMMENT ============
+    async function submitInlineComment() {
+        const comment = document.getElementById('inlineCommentText').value.trim();
         if (!comment) {
-            window.showToast('Please enter a comment', 'error');
+            const statusDiv = document.getElementById('inlineCommentStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'alert alert-warning';
+            statusDiv.innerHTML = 'Please enter a comment.';
             return;
         }
+
+        const statusDiv = document.getElementById('inlineCommentStatus');
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'alert alert-info';
+        statusDiv.innerHTML = 'Submitting comment...';
 
         const userName = localStorage.getItem('userName') || (isAuthorizedUser ? 'Team Leader' : 'Assistant');
 
@@ -1288,23 +1295,21 @@
 
             const data = await response.json();
             if (data.success) {
-                window.showToast('Comment added successfully');
-                // Hide the modal first
-                const modal = bootstrap.Modal.getInstance(document.getElementById('commentModal'));
-                modal.hide();
-                
-                // Wait for modal to fully close before refreshing
-                document.getElementById('commentModal').addEventListener('hidden.bs.modal', function onHidden() {
-                    document.getElementById('commentModal').removeEventListener('hidden.bs.modal', onHidden);
-                    // Refresh the report detail view
+                statusDiv.className = 'alert alert-success';
+                statusDiv.innerHTML = '✅ Comment added successfully!';
+                document.getElementById('inlineCommentText').value = '';
+                // Refresh the report detail view
+                setTimeout(() => {
                     viewReportDetail(currentReportId);
-                });
+                }, 800);
             } else {
-                window.showToast(data.error || 'Failed to add comment', 'error');
+                statusDiv.className = 'alert alert-danger';
+                statusDiv.innerHTML = '❌ Failed to add comment: ' + (data.error || 'Unknown error');
             }
         } catch (error) {
             console.error('Error adding comment:', error);
-            window.showToast('Error adding comment', 'error');
+            statusDiv.className = 'alert alert-danger';
+            statusDiv.innerHTML = '❌ Error adding comment: ' + error.message;
         }
     }
 
