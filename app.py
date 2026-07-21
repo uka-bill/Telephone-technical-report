@@ -665,8 +665,59 @@ def delete_technical_report(report_id):
         app.logger.error(f"Error deleting report: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-# ============ ASSISTANT TEAM LEADER CHECK ENDPOINT ============
+# ============ ACKNOWLEDGE ENDPOINT (FIXES "RESOURCE NOT FOUND" ERROR) ============
+@app.route('/api/technical-reports/<int:report_id>/acknowledge', methods=['POST'])
+def acknowledge_report(report_id):
+    try:
+        if not supabase:
+            return jsonify({'error': 'Database not connected'}), 500
+        
+        data = request.get_json()
+        team_leader_id = data.get('team_leader_id')
+        team_leader_notes = data.get('team_leader_notes', '')
+        
+        if not team_leader_id:
+            return jsonify({'success': False, 'error': 'Team Leader ID required'}), 400
+        
+        # Verify user is authorized
+        auth_response = supabase.table("technicians").select("is_authorized, name").eq("id", team_leader_id).execute()
+        if not auth_response.data:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        if not auth_response.data[0].get('is_authorized', False):
+            return jsonify({'success': False, 'error': 'You are not authorized to acknowledge reports'}), 403
+        
+        team_leader_name = auth_response.data[0].get('name', 'Team Leader')
+        
+        # Check if already acknowledged
+        report_response = supabase.table("technical_reports").select("team_leader_acknowledged").eq("id", report_id).execute()
+        if not report_response.data:
+            return jsonify({'success': False, 'error': 'Report not found'}), 404
+        
+        if report_response.data[0].get('team_leader_acknowledged', False):
+            return jsonify({'success': False, 'error': 'Report already acknowledged'}), 400
+        
+        # Update the report
+        update_data = {
+            "team_leader_acknowledged": True,
+            "team_leader_acknowledged_at": get_brunei_time_iso(),
+            "team_leader_id": team_leader_id,
+            "team_leader_name": team_leader_name,
+            "team_leader_notes": team_leader_notes,
+            "updated_at": get_brunei_time_iso()
+        }
+        
+        response = supabase.table("technical_reports").update(update_data).eq("id", report_id).execute()
+        if response.data:
+            app.logger.info(f"Report {report_id} acknowledged by Team Leader {team_leader_name}")
+            return jsonify({'success': True, 'message': 'Report acknowledged successfully'})
+        return jsonify({'success': False, 'error': 'Failed to acknowledge report'}), 500
+        
+    except Exception as e:
+        app.logger.error(f"Error acknowledging report: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
+# ============ ASSISTANT TEAM LEADER CHECK ENDPOINT ============
 @app.route('/api/technical-reports/<int:report_id>/check', methods=['POST'])
 def check_report_by_assistant(report_id):
     """Assistant Team Leader marks report as checked/read"""
