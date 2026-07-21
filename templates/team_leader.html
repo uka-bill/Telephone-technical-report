@@ -667,7 +667,7 @@
     </div>
 </div>
 
-<!-- Comment Modal (NEW - replaces prompt) -->
+<!-- Comment Modal -->
 <div class="modal fade" id="commentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -722,6 +722,31 @@
     let isModalExpanded = false;
     let techniciansMap = {};
 
+    // ============ TIME FUNCTIONS (fixed - no +8 offset) ============
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            // Time is already stored in Brunei Time (UTC+8), so no offset needed
+            return date.toLocaleString('en-GB', {
+                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+        } catch (e) {
+            return dateString;
+        }
+    }
+
+    function formatDateOnly(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            // Time is already stored in Brunei Time (UTC+8), so no offset needed
+            return date.toLocaleDateString('en-GB');
+        } catch (e) {
+            return dateString;
+        }
+    }
+
     async function loadTechnicians() {
         try {
             const response = await fetch('/api/technicians');
@@ -737,30 +762,6 @@
     function getTechnicianName(techId) {
         if (!techId) return 'Unassigned';
         return techniciansMap[techId] || `Technician #${techId}`;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return '-';
-        try {
-            const date = new Date(dateString);
-            date.setHours(date.getHours() + 8);
-            return date.toLocaleString('en-GB', {
-                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
-        } catch (e) {
-            return dateString;
-        }
-    }
-
-    function formatDateOnly(dateString) {
-        if (!dateString) return '-';
-        try {
-            const date = new Date(dateString);
-            date.setHours(date.getHours() + 8);
-            return date.toLocaleDateString('en-GB');
-        } catch (e) {
-            return dateString;
-        }
     }
 
     function escapeHtml(text) {
@@ -1131,10 +1132,17 @@
             const data = await response.json();
             if (data.success) {
                 window.showToast('Report acknowledged successfully');
-                bootstrap.Modal.getInstance(document.getElementById('acknowledgeModal')).hide();
-                loadTeamLeaderData();
-                const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewReportModal'));
-                if (viewModal) viewModal.hide();
+                // Hide the modal first, then refresh after it's fully closed
+                const modal = bootstrap.Modal.getInstance(document.getElementById('acknowledgeModal'));
+                modal.hide();
+                
+                // Wait for modal to fully close before refreshing
+                document.getElementById('acknowledgeModal').addEventListener('hidden.bs.modal', function onHidden() {
+                    document.getElementById('acknowledgeModal').removeEventListener('hidden.bs.modal', onHidden);
+                    loadTeamLeaderData();
+                    const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewReportModal'));
+                    if (viewModal) viewModal.hide();
+                });
             } else {
                 window.showToast(data.error || 'Failed to acknowledge', 'error');
             }
@@ -1253,7 +1261,7 @@
         document.getElementById('viewReportContent').innerHTML = html;
     }
 
-    // ============ FIXED: Comment Modal Functions ============
+    // ============ FIXED: Comment Modal with proper closing ============
     function showAddCommentModal() {
         document.getElementById('newCommentText').value = '';
         new bootstrap.Modal(document.getElementById('commentModal')).show();
@@ -1281,9 +1289,16 @@
             const data = await response.json();
             if (data.success) {
                 window.showToast('Comment added successfully');
-                bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
-                // Refresh the report detail view
-                viewReportDetail(currentReportId);
+                // Hide the modal first
+                const modal = bootstrap.Modal.getInstance(document.getElementById('commentModal'));
+                modal.hide();
+                
+                // Wait for modal to fully close before refreshing
+                document.getElementById('commentModal').addEventListener('hidden.bs.modal', function onHidden() {
+                    document.getElementById('commentModal').removeEventListener('hidden.bs.modal', onHidden);
+                    // Refresh the report detail view
+                    viewReportDetail(currentReportId);
+                });
             } else {
                 window.showToast(data.error || 'Failed to add comment', 'error');
             }
