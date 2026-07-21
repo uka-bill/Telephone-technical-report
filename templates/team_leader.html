@@ -151,8 +151,8 @@
         background: linear-gradient(135deg, #f8f5fc 0%, #f3e5f5 100%);
     }
     .col-id { width: 45px; min-width: 45px; max-width: 45px; }
-    .col-entity { width: auto; min-width: 120px; }
-    .col-problem { width: auto; min-width: 120px; }
+    .col-entity { width: 220px; min-width: 180px; max-width: 300px; }
+    .col-problem { width: 150px; min-width: 120px; max-width: 220px; }
     .col-priority { width: 60px; min-width: 55px; max-width: 70px; }
     .col-technician { width: 120px; min-width: 100px; max-width: 150px; }
     .col-assistant { width: 120px; min-width: 100px; max-width: 150px; }
@@ -474,6 +474,16 @@
         color: white;
         border-radius: 16px 16px 0 0;
         padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-header-custom .btn-close {
+        filter: brightness(0) invert(1);
+        margin-left: auto;
+    }
+    .modal-header-custom .modal-title {
+        flex: 1;
     }
     .btn-primary-custom {
         background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
@@ -529,6 +539,8 @@
     /* Responsive */
     @media (max-width: 768px) {
         .col-id { width: 35px; min-width: 35px; }
+        .col-entity { width: 140px; min-width: 100px; }
+        .col-problem { min-width: 80px; }
         .col-priority { width: 45px; min-width: 40px; }
         .col-technician { width: 80px; min-width: 60px; }
         .col-assistant { width: 80px; min-width: 60px; }
@@ -639,7 +651,7 @@
         <div class="modal-content">
             <div class="modal-header-custom">
                 <h5 class="modal-title"><i class="bi bi-check2-square"></i> Acknowledge Report</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
@@ -655,6 +667,28 @@
     </div>
 </div>
 
+<!-- Comment Modal (NEW - replaces prompt) -->
+<div class="modal fade" id="commentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header-custom">
+                <h5 class="modal-title"><i class="bi bi-chat-dots"></i> Add Comment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Your Comment</label>
+                    <textarea class="form-control" id="newCommentText" rows="4" placeholder="Enter your comment..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-primary-custom" onclick="submitComment()">Add Comment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- View Report Modal -->
 <div class="modal fade" id="viewReportModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -664,7 +698,7 @@
                 <button type="button" class="btn-expand" id="expandModalBtn" onclick="toggleModalSize()">
                     <i class="bi bi-arrows-fullscreen"></i>
                 </button>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="viewReportContent" style="max-height: 70vh; overflow-y: auto;">Loading...</div>
             <div class="modal-footer">
@@ -853,7 +887,6 @@
         }
 
         loadTeamLeaderData();
-        // Auto-refresh removed
     }
 
     async function loadTeamLeaderData() {
@@ -908,7 +941,6 @@
             return;
         }
 
-        // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
         const totalReports = reports.length;
 
         container.innerHTML = `
@@ -980,7 +1012,6 @@
             return;
         }
 
-        // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
         const totalReports = reports.length;
 
         container.innerHTML = `
@@ -1214,34 +1245,51 @@
                 ${acknowledgmentHtml}
                 ${imagesHtml}
                 ${commentsHtml}
-                <div class="mt-3"><button class="btn-secondary-custom" onclick="showAddCommentModal()"><i class="bi bi-chat-dots"></i> Add Comment</button></div>
+                <div class="mt-3">
+                    <button class="btn-secondary-custom" onclick="showAddCommentModal()"><i class="bi bi-chat-dots"></i> Add Comment</button>
+                </div>
             </div>
         `;
         document.getElementById('viewReportContent').innerHTML = html;
     }
 
+    // ============ FIXED: Comment Modal Functions ============
     function showAddCommentModal() {
-        const comment = prompt('Enter your comment:');
-        if (!comment || !comment.trim()) return;
+        document.getElementById('newCommentText').value = '';
+        new bootstrap.Modal(document.getElementById('commentModal')).show();
+    }
+
+    async function submitComment() {
+        const comment = document.getElementById('newCommentText').value.trim();
+        if (!comment) {
+            window.showToast('Please enter a comment', 'error');
+            return;
+        }
 
         const userName = localStorage.getItem('userName') || (isAuthorizedUser ? 'Team Leader' : 'Assistant');
 
         try {
             let comments = currentReport.comments || [];
             comments.push({ author: userName, text: comment, created_at: new Date().toISOString() });
-            fetch(`/api/technical-reports/${currentReportId}`, {
+
+            const response = await fetch(`/api/technical-reports/${currentReportId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ comments: comments })
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      window.showToast('Comment added');
-                      viewReportDetail(currentReportId);
-                  }
-              });
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                window.showToast('Comment added successfully');
+                bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
+                // Refresh the report detail view
+                viewReportDetail(currentReportId);
+            } else {
+                window.showToast(data.error || 'Failed to add comment', 'error');
+            }
         } catch (error) {
-            window.showToast('Error', 'error');
+            console.error('Error adding comment:', error);
+            window.showToast('Error adding comment', 'error');
         }
     }
 
