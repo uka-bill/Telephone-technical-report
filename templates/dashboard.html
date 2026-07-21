@@ -635,7 +635,7 @@
     <table class="ack-table">
         <thead>
             <tr>
-                <th>ID</th>
+                <th style="width: 50px;">#</th>
                 <th>Type</th>
                 <th>Location</th>
                 <th>Submitted By</th>
@@ -659,7 +659,7 @@
     <table class="ack-table">
         <thead>
             <tr>
-                <th>ID</th>
+                <th style="width: 50px;">#</th>
                 <th>Type</th>
                 <th>Location</th>
                 <th>Submitted By</th>
@@ -741,6 +741,7 @@
     let currentUser = null;
     let mappingImagesData = [];
     let techniciansMap = {};
+    let globalRankMap = {};  // NEW: map of report ID -> global rank (matching Reports tabs)
     
     function formatDate(dateString) {
         if (!dateString) return '-';
@@ -903,6 +904,22 @@
             const reportsResponse = await fetch('/api/technical-reports');
             allReports = await reportsResponse.json();
             
+            // --- FIX: Compute global rank for each report (matching Reports tabs numbering) ---
+            // Sort all reports by created_at DESC (newest first) - same as Reports tabs
+            const sortedReports = [...allReports].sort((a, b) => {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+            // Build map: report ID -> global rank (oldest = #1, newest = #N)
+            globalRankMap = {};
+            const total = sortedReports.length;
+            sortedReports.forEach((report, index) => {
+                // index 0 = newest, total - 1 = oldest
+                // oldest should be #1, newest should be #total
+                // So rank = total - index
+                globalRankMap[report.id] = total - index;
+            });
+            console.log('Global rank map computed for', Object.keys(globalRankMap).length, 'reports');
+            
             // Load technicians to get names
             const techsResponse = await fetch('/api/technicians');
             const technicians = await techsResponse.json();
@@ -933,15 +950,15 @@
             });
             document.getElementById('trendText').innerHTML = `<i class="bi bi-arrow-up"></i> ${last7Days.length} in last 7 days`;
             
-            // 🔥 Updated: Display recent reports by type (latest 10 instead of 5)
+            // Display recent reports by type (latest 10)
             displayRecentByType(waterReports.slice(0, 10), 'waterReportsList', '💧');
             displayRecentByType(electricityReports.slice(0, 10), 'electricityReportsList', '⚡');
             displayRecentByType(telephoneReports.slice(0, 10), 'telephoneReportsList', '📞');
             
-            // Display pending acknowledgment table (latest 10)
+            // Display pending acknowledgment table (latest 10) - using global rank
             displayPendingTable(pendingReports.slice(0, 10), techMap);
             
-            // Display acknowledged table (latest 10)
+            // Display acknowledged table (latest 10) - using global rank
             displayAcknowledgedTable(acknowledgedReports.slice(0, 10), techMap);
             
             // Load image statistics
@@ -966,11 +983,12 @@
             const isPending = !report.team_leader_acknowledged;
             const statusClass = isPending ? 'status-pending' : 'status-acknowledged';
             const statusText = isPending ? 'Pending' : 'Acknowledged';
+            const rank = globalRankMap[report.id] || '?';
             
             return `
                 <div class="report-item" onclick="viewReport(${report.id})">
                     <div class="report-info">
-                        <div class="report-id">#${report.id} ${icon}</div>
+                        <div class="report-id">#${rank} ${icon}</div>
                         <div class="report-location">${truncateText(escapeHtml(report.entity_name || report.entity_type), 40)}</div>
                         <div class="report-date">${formatDate(report.created_at)}</div>
                     </div>
@@ -1006,10 +1024,12 @@
                 priorityClass = 'priority-low';
                 priorityText = 'LOW';
             }
+            // Use global rank instead of local index
+            const rank = globalRankMap[report.id] || '?';
             
             return `
                 <tr onclick="viewReport(${report.id})">
-                    <td style="font-weight: 600; color: #9b59b6;">#${report.id}</td>
+                    <td style="font-weight: 600; color: #9b59b6;">#${rank}</td>
                     <td><span class="type-icon">${typeIcon} ${report.report_type}</span></td>
                     <td>${truncateText(escapeHtml(report.entity_name || report.entity_type), 35)}</td>
                     <td>${escapeHtml(techMap[report.technician_id] || 'Unknown')}</td>
@@ -1033,10 +1053,11 @@
         
         tbody.innerHTML = reports.map(report => {
             const typeIcon = getTypeIcon(report.report_type);
+            const rank = globalRankMap[report.id] || '?';
             
             return `
                 <tr onclick="viewReport(${report.id})">
-                    <td style="font-weight: 600; color: #9b59b6;">#${report.id}</td>
+                    <td style="font-weight: 600; color: #9b59b6;">#${rank}</td>
                     <td><span class="type-icon">${typeIcon} ${report.report_type}</span></td>
                     <td>${truncateText(escapeHtml(report.entity_name || report.entity_type), 35)}</td>
                     <td>${escapeHtml(techMap[report.technician_id] || 'Unknown')}</td>
