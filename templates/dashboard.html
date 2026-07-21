@@ -741,20 +741,24 @@
     let currentUser = null;
     let mappingImagesData = [];
     let techniciansMap = {};
-    let globalRankMap = {};  // NEW: map of report ID -> global rank (matching Reports tabs)
-    
+    let globalRankMap = {};
+
+    // ============ FIXED: Time display functions (no +8 offset) ============
     function formatDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        date.setHours(date.getHours() + 8);
+        // Time is already stored in Brunei Time (UTC+8), so no offset needed
         return date.toLocaleDateString('en-GB');
     }
     
     function formatDateTime(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        date.setHours(date.getHours() + 8);
-        return date.toLocaleString('en-GB');
+        // Time is already stored in Brunei Time (UTC+8), so no offset needed
+        return date.toLocaleString('en-GB', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
     }
     
     function escapeHtml(text) {
@@ -800,23 +804,19 @@
     
     async function loadMappingImagesSummary() {
         try {
-            // Load all mapping images
             const imagesResponse = await fetch('/api/mapping/images');
             let images = await imagesResponse.json();
             if (!images) images = [];
             
-            // Load schools and departments
             const schoolsResponse = await fetch('/api/schools');
             const departmentsResponse = await fetch('/api/departments');
             const schools = await schoolsResponse.json();
             const departments = await departmentsResponse.json();
             
-            // Build entity name lookup
             const entityMap = {};
             schools.forEach(s => { entityMap[`school_${s.id}`] = { name: s.name, type: 'school' }; });
             departments.forEach(d => { entityMap[`department_${d.id}`] = { name: d.name, type: 'department' }; });
             
-            // Group images by entity
             const entityGroups = {};
             images.forEach(img => {
                 const key = `${img.entity_type}_${img.entity_id}`;
@@ -833,7 +833,6 @@
                     };
                 }
                 entityGroups[key].images.push(img);
-                // Track latest upload
                 if (img.uploaded_at && (!entityGroups[key].uploaded_at || img.uploaded_at > entityGroups[key].uploaded_at)) {
                     entityGroups[key].uploaded_at = img.uploaded_at;
                     entityGroups[key].uploaded_by = img.uploaded_by;
@@ -844,7 +843,6 @@
                 }
             });
             
-            // Convert to array and sort by latest upload date (newest first)
             let grouped = Object.values(entityGroups);
             grouped.sort((a, b) => {
                 if (a.uploaded_at && b.uploaded_at) {
@@ -853,10 +851,7 @@
                 return 0;
             });
             
-            // Limit to latest 10 entities
             mappingImagesData = grouped.slice(0, 10);
-            
-            // Display in table
             displayMappingImagesTable(mappingImagesData);
             
         } catch (error) {
@@ -900,40 +895,29 @@
     
     async function loadDashboardData() {
         try {
-            // Load all reports
             const reportsResponse = await fetch('/api/technical-reports');
             allReports = await reportsResponse.json();
             
-            // --- FIX: Compute global rank for each report (matching Reports tabs numbering) ---
-            // Sort all reports by created_at DESC (newest first) - same as Reports tabs
             const sortedReports = [...allReports].sort((a, b) => {
                 return new Date(b.created_at) - new Date(a.created_at);
             });
-            // Build map: report ID -> global rank (oldest = #1, newest = #N)
             globalRankMap = {};
             const total = sortedReports.length;
             sortedReports.forEach((report, index) => {
-                // index 0 = newest, total - 1 = oldest
-                // oldest should be #1, newest should be #total
-                // So rank = total - index
                 globalRankMap[report.id] = total - index;
             });
-            console.log('Global rank map computed for', Object.keys(globalRankMap).length, 'reports');
             
-            // Load technicians to get names
             const techsResponse = await fetch('/api/technicians');
             const technicians = await techsResponse.json();
             const techMap = {};
             technicians.forEach(t => { techMap[t.id] = t.name; });
             
-            // Calculate statistics
             const waterReports = allReports.filter(r => r.report_type === 'water');
             const electricityReports = allReports.filter(r => r.report_type === 'electricity');
             const telephoneReports = allReports.filter(r => r.report_type === 'telephone');
             const pendingReports = allReports.filter(r => !r.team_leader_acknowledged);
             const acknowledgedReports = allReports.filter(r => r.team_leader_acknowledged);
             
-            // Update counters
             document.getElementById('totalReports').textContent = allReports.length;
             document.getElementById('pendingReports').textContent = pendingReports.length;
             document.getElementById('acknowledgedReports').textContent = acknowledgedReports.length;
@@ -941,7 +925,6 @@
             document.getElementById('electricityTotal').textContent = electricityReports.length;
             document.getElementById('telephoneTotal').textContent = telephoneReports.length;
             
-            // Update trend text
             const last7Days = allReports.filter(r => {
                 const date = new Date(r.created_at);
                 const weekAgo = new Date();
@@ -950,21 +933,14 @@
             });
             document.getElementById('trendText').innerHTML = `<i class="bi bi-arrow-up"></i> ${last7Days.length} in last 7 days`;
             
-            // Display recent reports by type (latest 10)
             displayRecentByType(waterReports.slice(0, 10), 'waterReportsList', '💧');
             displayRecentByType(electricityReports.slice(0, 10), 'electricityReportsList', '⚡');
             displayRecentByType(telephoneReports.slice(0, 10), 'telephoneReportsList', '📞');
             
-            // Display pending acknowledgment table (latest 10) - using global rank
             displayPendingTable(pendingReports.slice(0, 10), techMap);
-            
-            // Display acknowledged table (latest 10) - using global rank
             displayAcknowledgedTable(acknowledgedReports.slice(0, 10), techMap);
             
-            // Load image statistics
             await loadImageStats();
-            
-            // Load mapping images summary (latest 10 entities)
             await loadMappingImagesSummary();
             
         } catch (error) {
@@ -1024,7 +1000,6 @@
                 priorityClass = 'priority-low';
                 priorityText = 'LOW';
             }
-            // Use global rank instead of local index
             const rank = globalRankMap[report.id] || '?';
             
             return `
@@ -1275,6 +1250,5 @@
     // Initialize
     loadTechnicians();
     loadDashboardData();
-    // No auto-refresh – user can manually refresh the page
 </script>
 {% endblock %}
