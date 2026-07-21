@@ -140,9 +140,9 @@
     /* Column Widths */
     .col-id { width: 45px; min-width: 45px; max-width: 45px; }
     .col-type { width: 80px; min-width: 70px; max-width: 100px; }
-    .col-location { width: 140px; min-width: 110px; max-width: 180px; }
+    .col-location { width: 220px; min-width: 180px; max-width: 300px; }
     .col-problem { width: 120px; min-width: 100px; max-width: 160px; }
-    .col-details { width: auto; min-width: 180px; }
+    .col-details { width: 200px; min-width: 140px; max-width: 280px; }
     .col-submitted { width: 120px; min-width: 100px; max-width: 150px; }
     .col-status { width: 85px; min-width: 75px; max-width: 110px; }
     .col-date { width: 130px; min-width: 110px; max-width: 160px; }
@@ -276,9 +276,16 @@
         color: white;
         border-radius: 16px 16px 0 0;
         padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
     .modal-header-custom .btn-close {
         filter: brightness(0) invert(1);
+        margin-left: auto;
+    }
+    .modal-header-custom .modal-title {
+        flex: 1;
     }
     .modal-header-custom h5 {
         font-weight: 600;
@@ -320,7 +327,7 @@
     @media (max-width: 768px) {
         .col-id { width: 35px; min-width: 35px; }
         .col-type { width: 60px; min-width: 50px; }
-        .col-location { width: 100px; min-width: 80px; }
+        .col-location { width: 140px; min-width: 100px; }
         .col-problem { width: 80px; min-width: 60px; }
         .col-details { min-width: 100px; }
         .col-submitted { width: 80px; min-width: 60px; }
@@ -603,7 +610,7 @@
         if (!dateString) return '-';
         try {
             const date = new Date(dateString);
-            date.setHours(date.getHours() + 8);
+            // Time is already stored in Brunei Time (UTC+8), so no offset needed
             return date.toLocaleString('en-GB', {
                 day: '2-digit', month: '2-digit', year: 'numeric',
                 hour: '2-digit', minute: '2-digit'
@@ -748,11 +755,8 @@
             return;
         }
 
-        // 🔥 NEW: Oldest report = #1, newest report = highest number
-        // Since reports are sorted by created_at DESC (newest first),
-        // we use reverse index: rowNumber = reports.length - index
         tbody.innerHTML = reports.map((report, index) => {
-            const rowNumber = reports.length - index;  // ← FIX: Oldest = #1, Newest = highest
+            const rowNumber = reports.length - index;
             const statusBadge = getStatusBadge(report.status);
             const priorityBadge = getPriorityBadge(report.priority);
             const typeIcon = getTypeIcon(report.report_type);
@@ -960,7 +964,6 @@
             return;
         }
 
-        // Populate the form
         document.getElementById('editReportId').value = report.id;
         document.getElementById('editReportType').value = report.report_type || 'water';
         document.getElementById('editReportStatus').value = report.status || 'pending';
