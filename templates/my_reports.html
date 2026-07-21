@@ -131,10 +131,10 @@
         background: linear-gradient(135deg, #f8f5fc 0%, #f3e5f5 100%);
     }
     .col-id { width: 45px; min-width: 45px; max-width: 45px; }
-    .col-entity { width: auto; min-width: 120px; }
+    .col-entity { width: 220px; min-width: 180px; max-width: 300px; }
     .col-ref-number { width: 80px; min-width: 70px; max-width: 100px; }
     .col-ref-date { width: 70px; min-width: 60px; max-width: 85px; }
-    .col-problem { width: auto; min-width: 120px; }
+    .col-problem { width: 150px; min-width: 120px; max-width: 220px; }
     .col-priority { width: 60px; min-width: 55px; max-width: 70px; }
     .col-status { width: 85px; min-width: 75px; max-width: 110px; }
     .col-date { width: 75px; min-width: 70px; max-width: 90px; }
@@ -461,6 +461,16 @@
         color: white;
         border-radius: 16px 16px 0 0;
         padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-header-custom .btn-close {
+        filter: brightness(0) invert(1);
+        margin-left: auto;
+    }
+    .modal-header-custom .modal-title {
+        flex: 1;
     }
     .btn-secondary-custom {
         background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
@@ -490,8 +500,10 @@
     /* Responsive */
     @media (max-width: 768px) {
         .col-id { width: 35px; min-width: 35px; }
+        .col-entity { width: 140px; min-width: 100px; }
         .col-ref-number { width: 60px; min-width: 50px; }
         .col-ref-date { width: 50px; min-width: 45px; }
+        .col-problem { min-width: 80px; }
         .col-priority { width: 45px; min-width: 40px; }
         .col-status { width: 65px; min-width: 55px; }
         .col-date { width: 60px; min-width: 55px; }
@@ -715,14 +727,14 @@
     function formatDate(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        date.setHours(date.getHours() + 8);
+        // Time is already stored in Brunei Time (UTC+8), so no offset needed
         return date.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
 
     function formatDateOnly(dateString) {
         if (!dateString) return '-';
         const date = new Date(dateString);
-        date.setHours(date.getHours() + 8);
+        // Time is already stored in Brunei Time (UTC+8), so no offset needed
         return date.toLocaleDateString('en-GB');
     }
 
@@ -919,7 +931,6 @@
         const buildTable = (reportList, typeName, typeIcon) => {
             if (reportList.length === 0) return '';
 
-            // 🔥 CORRECT NUMBERING: Oldest = #1, Newest = highest number
             const totalReports = reportList.length;
 
             let tableHtml = `<div class="category-container">
