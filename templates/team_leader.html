@@ -682,11 +682,11 @@
     let isAuthorizedUser = false;
     let isAssistantLeader = false;
     let currentReportId = null;
-    let currentReportRowNumber = null;  // NEW: stores the table row number
     let currentReport = null;
     let allReports = [];
     let isModalExpanded = false;
     let techniciansMap = {};
+    let globalRankMap = {};  // NEW: map of report ID -> global rank (like reports tabs)
 
     // ============ TIME FUNCTIONS (fixed - no +8 offset) ============
     function formatDate(dateString) {
@@ -863,6 +863,17 @@
             allReports = await response.json();
             console.log('All reports loaded:', allReports.length);
 
+            // Compute global rank for each report (like reports tabs)
+            const sortedReports = [...allReports].sort((a, b) => {
+                return new Date(a.created_at) - new Date(b.created_at);
+            });
+            globalRankMap = {};
+            const total = sortedReports.length;
+            sortedReports.forEach((report, index) => {
+                // Oldest = #1, newest = #total
+                globalRankMap[report.id] = index + 1;
+            });
+
             const unacknowledgedReports = allReports.filter(r => !r.team_leader_acknowledged);
             const highPriorityUnack = unacknowledgedReports.filter(r => r.priority === 'high');
             const acknowledgedReports = allReports.filter(r => r.team_leader_acknowledged);
@@ -933,11 +944,11 @@
 
                         return `
                             <tr style="background: linear-gradient(135deg, #fff3cd 0%, #ffe0b2 100%);" data-id="${report.id}">
-                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id}, ${rowNumber})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
-                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.entity_name || report.entity_type)}</td>
-                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.problem_type || '-')}</td>
-                                <td class="col-priority priority-high-cell" onclick="viewReportDetail(${report.id}, ${rowNumber})"><span class="priority-icon">${priorityIcon}</span> HIGH</td>
-                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(techName)}</td>
+                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
+                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.entity_name || report.entity_type)}</td>
+                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.problem_type || '-')}</td>
+                                <td class="col-priority priority-high-cell" onclick="viewReportDetail(${report.id})"><span class="priority-icon">${priorityIcon}</span> HIGH</td>
+                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id})">${escapeHtml(techName)}</td>
                                 <td class="col-assistant">
                                     ${isChecked ?
                                         `<span class="checked-badge"><i class="bi bi-check-circle"></i> by ${escapeHtml(report.checked_by_assistant_name || 'Assistant')}</span><br><small>${formatDate(report.checked_by_assistant_at)}</small>` :
@@ -947,11 +958,11 @@
                                         )
                                     }
                                 </td>
-                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id}, ${rowNumber})">${formatDateOnly(report.created_at)}</td>
+                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id})">${formatDateOnly(report.created_at)}</td>
                                 <td class="col-actions">
                                     <div class="action-buttons">
                                         ${isAuthorizedUser ? `<button class="btn-acknowledge" onclick="event.stopPropagation(); openAcknowledgeModal(${report.id})">Acknowledge</button>` : ''}
-                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id}, ${rowNumber})" title="View"><i class="bi bi-eye"></i></button>
+                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id})" title="View"><i class="bi bi-eye"></i></button>
                                         <button class="btn-action btn-print-action" onclick="event.stopPropagation(); printReport(${report.id})" title="Print"><i class="bi bi-printer"></i></button>
                                     </div>
                                 </td>
@@ -1006,11 +1017,11 @@
 
                         return `
                             <tr data-id="${report.id}">
-                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id}, ${rowNumber})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
-                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.entity_name || report.entity_type)}</td>
-                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.problem_type || '-')}</td>
-                                <td class="col-priority ${priorityClass}" onclick="viewReportDetail(${report.id}, ${rowNumber})"><span class="priority-icon">${priorityIcon}</span> ${priorityText}</td>
-                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(techName)}</td>
+                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
+                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.entity_name || report.entity_type)}</td>
+                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.problem_type || '-')}</td>
+                                <td class="col-priority ${priorityClass}" onclick="viewReportDetail(${report.id})"><span class="priority-icon">${priorityIcon}</span> ${priorityText}</td>
+                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id})">${escapeHtml(techName)}</td>
                                 <td class="col-assistant">
                                     ${isChecked ?
                                         `<span class="checked-badge"><i class="bi bi-check-circle"></i> by ${escapeHtml(report.checked_by_assistant_name || 'Assistant')}</span><br><small>${formatDate(report.checked_by_assistant_at)}</small>` :
@@ -1020,11 +1031,11 @@
                                         )
                                     }
                                 </td>
-                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id}, ${rowNumber})">${formatDateOnly(report.created_at)}</td>
+                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id})">${formatDateOnly(report.created_at)}</td>
                                 <td class="col-actions">
                                     <div class="action-buttons">
                                         ${isAuthorizedUser ? `<button class="btn-acknowledge" onclick="event.stopPropagation(); openAcknowledgeModal(${report.id})">Acknowledge</button>` : ''}
-                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id}, ${rowNumber})" title="View"><i class="bi bi-eye"></i></button>
+                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id})" title="View"><i class="bi bi-eye"></i></button>
                                         <button class="btn-action btn-print-action" onclick="event.stopPropagation(); printReport(${report.id})" title="Print"><i class="bi bi-printer"></i></button>
                                     </div>
                                 </td>
@@ -1115,10 +1126,9 @@
         }
     }
 
-    // ============ FIX 1: viewReportDetail - uses allReports, no extra API call ============
-    async function viewReportDetail(id, rowNumber) {
+    // ============ viewReportDetail - uses allReports (fast) and global rank ============
+    function viewReportDetail(id) {
         currentReportId = id;
-        currentReportRowNumber = rowNumber;  // Store the table row number
         
         // Find the report in the already-loaded allReports array
         currentReport = allReports.find(r => r.id === id);
@@ -1152,7 +1162,7 @@
         }
     }
 
-    // ============ FIX 2: displayReportInModal - shows table number, not database ID ============
+    // ============ displayReportInModal - uses GLOBAL rank (like reports tabs) ============
     function displayReportInModal(report) {
         const reportTypeIcon = report.report_type === 'water' ? '💧' : report.report_type === 'electricity' ? '⚡' : '📞';
         const reportTypeName = report.report_type === 'water' ? 'Water' : report.report_type === 'electricity' ? 'Electricity' : 'Telephone';
@@ -1160,8 +1170,8 @@
         const isAcknowledged = report.team_leader_acknowledged;
         const isChecked = report.checked_by_assistant === true;
 
-        // Use the stored row number, or fallback to the report ID if not set
-        const displayNumber = currentReportRowNumber || report.id;
+        // Use global rank (same as reports tabs)
+        const displayNumber = globalRankMap[report.id] || report.id;
 
         let imagesHtml = '';
         if (report.images && report.images.length > 0) {
@@ -1246,8 +1256,8 @@
     }
 
     function generatePrintHTML(report) {
-        // Use the stored row number for the print header, or fallback to report ID
-        const displayNumber = currentReportRowNumber || report.id;
+        // Use global rank for print header
+        const displayNumber = globalRankMap[report.id] || report.id;
         const reportTypeIcon = report.report_type === 'water' ? '💧' : report.report_type === 'electricity' ? '⚡' : '📞';
         const reportTypeName = report.report_type === 'water' ? 'Water' : report.report_type === 'electricity' ? 'Electricity' : 'Telephone';
         const currentDate = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
