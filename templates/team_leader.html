@@ -682,6 +682,7 @@
     let isAuthorizedUser = false;
     let isAssistantLeader = false;
     let currentReportId = null;
+    let currentReportRowNumber = null;  // NEW: stores the table row number
     let currentReport = null;
     let allReports = [];
     let isModalExpanded = false;
@@ -932,11 +933,11 @@
 
                         return `
                             <tr style="background: linear-gradient(135deg, #fff3cd 0%, #ffe0b2 100%);" data-id="${report.id}">
-                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
-                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.entity_name || report.entity_type)}</td>
-                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.problem_type || '-')}</td>
-                                <td class="col-priority priority-high-cell" onclick="viewReportDetail(${report.id})"><span class="priority-icon">${priorityIcon}</span> HIGH</td>
-                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id})">${escapeHtml(techName)}</td>
+                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id}, ${rowNumber})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
+                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.entity_name || report.entity_type)}</td>
+                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.problem_type || '-')}</td>
+                                <td class="col-priority priority-high-cell" onclick="viewReportDetail(${report.id}, ${rowNumber})"><span class="priority-icon">${priorityIcon}</span> HIGH</td>
+                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(techName)}</td>
                                 <td class="col-assistant">
                                     ${isChecked ?
                                         `<span class="checked-badge"><i class="bi bi-check-circle"></i> by ${escapeHtml(report.checked_by_assistant_name || 'Assistant')}</span><br><small>${formatDate(report.checked_by_assistant_at)}</small>` :
@@ -946,11 +947,11 @@
                                         )
                                     }
                                 </td>
-                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id})">${formatDateOnly(report.created_at)}</td>
+                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id}, ${rowNumber})">${formatDateOnly(report.created_at)}</td>
                                 <td class="col-actions">
                                     <div class="action-buttons">
                                         ${isAuthorizedUser ? `<button class="btn-acknowledge" onclick="event.stopPropagation(); openAcknowledgeModal(${report.id})">Acknowledge</button>` : ''}
-                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id})" title="View"><i class="bi bi-eye"></i></button>
+                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id}, ${rowNumber})" title="View"><i class="bi bi-eye"></i></button>
                                         <button class="btn-action btn-print-action" onclick="event.stopPropagation(); printReport(${report.id})" title="Print"><i class="bi bi-printer"></i></button>
                                     </div>
                                 </td>
@@ -1005,11 +1006,11 @@
 
                         return `
                             <tr data-id="${report.id}">
-                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
-                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.entity_name || report.entity_type)}</td>
-                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id})">${escapeHtml(report.problem_type || '-')}</td>
-                                <td class="col-priority ${priorityClass}" onclick="viewReportDetail(${report.id})"><span class="priority-icon">${priorityIcon}</span> ${priorityText}</td>
-                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id})">${escapeHtml(techName)}</td>
+                                <td class="col-id"><span class="report-id-link" onclick="viewReportDetail(${report.id}, ${rowNumber})">#${rowNumber}</span>${isChecked ? ' <span class="checked-badge"><i class="bi bi-eye"></i> Checked</span>' : ''}</td>
+                                <td class="col-entity entity-name" title="${escapeHtml(report.entity_name || report.entity_type)}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.entity_name || report.entity_type)}</td>
+                                <td class="col-problem problem-type" title="${escapeHtml(report.problem_type || '-')}" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(report.problem_type || '-')}</td>
+                                <td class="col-priority ${priorityClass}" onclick="viewReportDetail(${report.id}, ${rowNumber})"><span class="priority-icon">${priorityIcon}</span> ${priorityText}</td>
+                                <td class="col-technician technician-name" onclick="viewReportDetail(${report.id}, ${rowNumber})">${escapeHtml(techName)}</td>
                                 <td class="col-assistant">
                                     ${isChecked ?
                                         `<span class="checked-badge"><i class="bi bi-check-circle"></i> by ${escapeHtml(report.checked_by_assistant_name || 'Assistant')}</span><br><small>${formatDate(report.checked_by_assistant_at)}</small>` :
@@ -1019,11 +1020,11 @@
                                         )
                                     }
                                 </td>
-                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id})">${formatDateOnly(report.created_at)}</td>
+                                <td class="col-date date-cell" onclick="viewReportDetail(${report.id}, ${rowNumber})">${formatDateOnly(report.created_at)}</td>
                                 <td class="col-actions">
                                     <div class="action-buttons">
                                         ${isAuthorizedUser ? `<button class="btn-acknowledge" onclick="event.stopPropagation(); openAcknowledgeModal(${report.id})">Acknowledge</button>` : ''}
-                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id})" title="View"><i class="bi bi-eye"></i></button>
+                                        <button class="btn-action btn-view-action" onclick="event.stopPropagation(); viewReportDetail(${report.id}, ${rowNumber})" title="View"><i class="bi bi-eye"></i></button>
                                         <button class="btn-action btn-print-action" onclick="event.stopPropagation(); printReport(${report.id})" title="Print"><i class="bi bi-printer"></i></button>
                                     </div>
                                 </td>
@@ -1114,36 +1115,33 @@
         }
     }
 
-    async function viewReportDetail(id) {
+    // ============ FIX 1: viewReportDetail - uses allReports, no extra API call ============
+    async function viewReportDetail(id, rowNumber) {
         currentReportId = id;
-        try {
-            const response = await fetch('/api/technical-reports');
-            const reports = await response.json();
-            currentReport = reports.find(r => r.id === id);
-
-            if (currentReport) {
-                displayReportInModal(currentReport);
-                const ackBtn = document.getElementById('modalAcknowledgeBtn');
-                if (ackBtn) {
-                    ackBtn.style.display = (isAuthorizedUser && !currentReport.team_leader_acknowledged) ? 'inline-block' : 'none';
-                }
-                if (isModalExpanded) {
-                    const modalDialog = document.querySelector('#viewReportModal .modal-dialog');
-                    const expandBtn = document.getElementById('expandModalBtn');
-                    if (modalDialog) {
-                        modalDialog.classList.remove('modal-fullscreen');
-                        modalDialog.classList.add('modal-xl');
-                        expandBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
-                        isModalExpanded = false;
-                    }
-                }
-                new bootstrap.Modal(document.getElementById('viewReportModal')).show();
-            } else {
-                window.showToast('Report not found', 'error');
+        currentReportRowNumber = rowNumber;  // Store the table row number
+        
+        // Find the report in the already-loaded allReports array
+        currentReport = allReports.find(r => r.id === id);
+        
+        if (currentReport) {
+            displayReportInModal(currentReport);
+            const ackBtn = document.getElementById('modalAcknowledgeBtn');
+            if (ackBtn) {
+                ackBtn.style.display = (isAuthorizedUser && !currentReport.team_leader_acknowledged) ? 'inline-block' : 'none';
             }
-        } catch (error) {
-            console.error('Error loading report:', error);
-            window.showToast('Error loading report details', 'error');
+            if (isModalExpanded) {
+                const modalDialog = document.querySelector('#viewReportModal .modal-dialog');
+                const expandBtn = document.getElementById('expandModalBtn');
+                if (modalDialog) {
+                    modalDialog.classList.remove('modal-fullscreen');
+                    modalDialog.classList.add('modal-xl');
+                    expandBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+                    isModalExpanded = false;
+                }
+            }
+            new bootstrap.Modal(document.getElementById('viewReportModal')).show();
+        } else {
+            window.showToast('Report not found', 'error');
         }
     }
 
@@ -1154,13 +1152,16 @@
         }
     }
 
-    // ============ DISPLAY REPORT (NO INLINE COMMENT BOX) ============
+    // ============ FIX 2: displayReportInModal - shows table number, not database ID ============
     function displayReportInModal(report) {
         const reportTypeIcon = report.report_type === 'water' ? '💧' : report.report_type === 'electricity' ? '⚡' : '📞';
         const reportTypeName = report.report_type === 'water' ? 'Water' : report.report_type === 'electricity' ? 'Electricity' : 'Telephone';
         const techName = getTechnicianName(report.technician_id);
         const isAcknowledged = report.team_leader_acknowledged;
         const isChecked = report.checked_by_assistant === true;
+
+        // Use the stored row number, or fallback to the report ID if not set
+        const displayNumber = currentReportRowNumber || report.id;
 
         let imagesHtml = '';
         if (report.images && report.images.length > 0) {
@@ -1185,7 +1186,7 @@
         const html = `
             <div class="report-detail-container">
                 <div class="alert alert-info" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 100%); border: none; border-left: 4px solid #17a2b8;">
-                    <strong>Report #${report.id}</strong> | ${reportTypeName} ${reportTypeIcon}<br>
+                    <strong>Report #${displayNumber}</strong> | ${reportTypeName} ${reportTypeIcon}<br>
                     Submitted: ${formatDate(report.created_at)} | Status: ${isAcknowledged ? 'Acknowledged' : 'Pending Review'}
                 </div>
                 <div class="row mb-2">
@@ -1229,14 +1230,15 @@
 
     async function printReport(id) {
         try {
-            const response = await fetch('/api/technical-reports');
-            const reports = await response.json();
-            const report = reports.find(r => r.id === id);
+            // Use the already-loaded allReports array
+            const report = allReports.find(r => r.id === id);
             if (report) {
                 fetch(`/api/technical-reports/${id}/track-print`, { method: 'POST' }).catch(e => console.log(e));
                 const printWindow = window.open('', '_blank', 'width=900,height=700');
                 printWindow.document.write(generatePrintHTML(report));
                 printWindow.document.close();
+            } else {
+                window.showToast('Report not found', 'error');
             }
         } catch (error) {
             window.showToast('Error loading report for printing', 'error');
@@ -1244,6 +1246,8 @@
     }
 
     function generatePrintHTML(report) {
+        // Use the stored row number for the print header, or fallback to report ID
+        const displayNumber = currentReportRowNumber || report.id;
         const reportTypeIcon = report.report_type === 'water' ? '💧' : report.report_type === 'electricity' ? '⚡' : '📞';
         const reportTypeName = report.report_type === 'water' ? 'Water' : report.report_type === 'electricity' ? 'Electricity' : 'Telephone';
         const currentDate = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -1296,7 +1300,7 @@
 
         return `<!DOCTYPE html>
         <html>
-        <head><meta charset="UTF-8"><title>${reportTypeName} Technical Report #${report.id}</title>
+        <head><meta charset="UTF-8"><title>${reportTypeName} Technical Report #${displayNumber}</title>
         <style>
             *{margin:0;padding:0;box-sizing:border-box}
             body{font-family:'Times New Roman',Arial,serif;background:white;padding:0;margin:0;font-size:11pt;line-height:1.5}
@@ -1333,7 +1337,7 @@
                 </div>
 
                 <div class="report-id">
-                    <div><strong>Report ID:</strong> #${report.id}</div>
+                    <div><strong>Report ID:</strong> #${displayNumber}</div>
                     <div><strong>Date:</strong> ${formatDate(report.created_at)}</div>
                     <div><strong>Type:</strong> ${reportTypeName} ${reportTypeIcon}</div>
                     <div><strong>Status:</strong> ${report.team_leader_acknowledged ? 'Acknowledged' : 'Pending Review'}</div>
