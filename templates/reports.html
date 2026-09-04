@@ -382,8 +382,7 @@
                 <select class="form-select" id="filterStatus">
                     <option value="">All Status</option>
                     <option value="pending">⏳ Pending</option>
-                    <option value="in_progress">🔄 In Progress</option>
-                    <option value="resolved">✅ Resolved</option>
+                    <option value="acknowledged">✓ Acknowledged</option>
                 </select>
             </div>
             <div class="col-md-3 col-sm-6">
@@ -633,14 +632,13 @@
         return escapeHtml(text.substring(0, maxLength)) + '...';
     }
 
-    function getStatusBadge(status) {
-        const statusMap = {
-            'pending': 'status-pending',
-            'in_progress': 'status-in_progress',
-            'resolved': 'status-resolved',
-            'acknowledged': 'status-acknowledged'
-        };
-        return `<span class="status-badge ${statusMap[status] || 'status-pending'}">${status || 'Pending'}</span>`;
+    // ============ FIX: Status badge based on team_leader_acknowledged ============
+    function getStatusBadge(report) {
+        if (report.team_leader_acknowledged) {
+            return `<span class="status-badge status-acknowledged">✓ Acknowledged</span>`;
+        } else {
+            return `<span class="status-badge status-pending">⏳ Pending</span>`;
+        }
     }
 
     function getPriorityBadge(priority) {
@@ -700,17 +698,28 @@
             const search = document.getElementById('filterSearch').value.trim();
 
             if (type) params.append('type', type);
-            if (status) params.append('status', status);
+            if (status) {
+                // Convert filter status to team_leader_acknowledged filter
+                // We'll do client-side filtering for status since backend doesn't have this field
+                // We'll fetch all and filter later.
+            }
             if (entityType) params.append('entity_type', entityType);
 
             const url = `/api/technical-reports?${params.toString()}`;
             const response = await fetch(url);
             allReports = await response.json();
 
+            // Apply status filter client-side
             let filteredReports = allReports;
+            if (status === 'pending') {
+                filteredReports = allReports.filter(r => !r.team_leader_acknowledged);
+            } else if (status === 'acknowledged') {
+                filteredReports = allReports.filter(r => r.team_leader_acknowledged);
+            }
+
             if (search) {
                 const searchLower = search.toLowerCase();
-                filteredReports = allReports.filter(r => {
+                filteredReports = filteredReports.filter(r => {
                     const entityName = (r.entity_name || '').toLowerCase();
                     const problem = (r.problem_type || '').toLowerCase();
                     const details = (r.complaint_details || '').toLowerCase();
@@ -757,7 +766,7 @@
 
         tbody.innerHTML = reports.map((report, index) => {
             const rowNumber = reports.length - index;
-            const statusBadge = getStatusBadge(report.status);
+            const statusBadge = getStatusBadge(report);
             const priorityBadge = getPriorityBadge(report.priority);
             const typeIcon = getTypeIcon(report.report_type);
             const entityBadge = getEntityBadge(report.entity_type);
@@ -849,7 +858,7 @@
                         <div class="col-md-6">
                             <p><strong>Report ID:</strong> #${report.id}</p>
                             <p><strong>Type:</strong> ${getTypeIcon(report.report_type)}</p>
-                            <p><strong>Status:</strong> ${getStatusBadge(report.status)}</p>
+                            <p><strong>Status:</strong> ${getStatusBadge(report)}</p>
                             <p><strong>Priority:</strong> ${getPriorityBadge(report.priority)}</p>
                             <p><strong>Priority with Tender:</strong> ${report.priority_with_tender ? '✅ Yes' : '❌ No'}</p>
                         </div>
